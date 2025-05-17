@@ -63,3 +63,4 @@ Backend/AI/log_analysis_summary_*.json
 # Specific files
 integrated_analysis_example.py
 redhawk_dataset_2.csv
+backup/
