@@ -3,25 +3,116 @@
     {
       "total_records": 10,
       "prediction_counts": {
-        "normal": 5,
-        "probe": 2,
+        "normal": 7,
         "attack": 2,
         "anomaly": 1
       },
       "prediction_percentages": {
-        "normal": 50.0,
-        "probe": 20.0,
+        "normal": 70.0,
         "attack": 20.0,
         "anomaly": 10.0
       },
-      "text_summary": "Analysis of 10 log entries shows the security status is critical. Breakdown by category: normal: 5 entries (50.0%), probe: 2 entries (20.0%), attack: 2 entries (20.0%), anomaly: 1 entries (10.0%). Risk levels: 3 high, 4 medium, and 3 low risk entries.",
+      "log_entries": [
+        {
+          "timestamp": "2024-06-05T08:12:45.123000+00:00",
+          "source_ip": "192.168.1.100",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": "2024-06-05T08:13:12.456000+00:00",
+          "source_ip": "192.168.1.101",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": "2024-06-05T08:14:23.789000+00:00",
+          "source_ip": "192.168.1.102",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": "2024-06-05T08:15:34.321000+00:00",
+          "source_ip": "192.168.1.103",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": "2024-06-05T08:16:45.654000+00:00",
+          "source_ip": "192.168.1.104",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": "2024-06-05T08:17:56.987000+00:00",
+          "source_ip": "192.168.1.105",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": "2024-06-05T08:18:07.123000+00:00",
+          "source_ip": "192.168.1.106",
+          "type": "attack",
+          "sensitivity": "HIGH",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": "2024-06-05T08:19:18.456000+00:00",
+          "source_ip": "192.168.1.107",
+          "type": "attack",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": "2024-06-05T08:20:29.789000+00:00",
+          "source_ip": "192.168.1.108",
+          "type": "anomaly",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Review unusual behavior and investigate further"
+        },
+        {
+          "timestamp": "2024-06-05T08:21:30.321000+00:00",
+          "source_ip": "192.168.1.109",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        }
+      ],
+      "port_analysis": {
+        "80": 1,
+        "443": 1,
+        "8080": 1,
+        "22": 1,
+        "25": 1,
+        "53": 1,
+        "3389": 1,
+        "5900": 1,
+        "1433": 1,
+        "21": 1
+      },
+      "text_summary": "Analysis of 10 log entries shows the security status is critical. Breakdown by category: normal: 7 entries (70.0%), attack: 2 entries (20.0%), anomaly: 1 entries (10.0%). Risk levels: 2 high, 8 medium, and 0 low risk entries.",
       "recommended_actions": [
         "Immediately investigate attack incidents and consider isolating affected systems",
-        "Monitor for further suspicious activity from identified source IPs",
         "Review unusual behavior patterns in the log entries",
         "Continue monitoring logs for security incidents"
       ]
     }
   ],
-  "timestamp": "2025-05-17T14:38:23.909220"
+  "timestamp": "2025-05-17T15:31:53.196844"
 }
