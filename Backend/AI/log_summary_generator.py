@@ -5,6 +5,10 @@ import glob
 from datetime import datetime
 import json
 from openai import OpenAI
+import sys
+from collections import Counter
+# Import the log_analysis_pipeline module
+from log_analysis_pipeline import load_model, process_log_file
 
 def load_prediction_files(path, pattern="*_predictions_*.csv"):
     """
@@ -41,6 +45,11 @@ def analyze_prediction_file(file_path):
         
         # Extract and analyze additional fields
         log_entries = []
+        
+        # Track ports and vulnerability types for visualization
+        port_counts = Counter()
+        vulnerability_types = Counter()
+        
         for _, row in df.iterrows():
             entry = {
                 'timestamp': None,
@@ -65,10 +74,29 @@ def analyze_prediction_file(file_path):
             if ip_cols:
                 entry['source_ip'] = str(row[ip_cols[0]])
             
+            # Try to find port information (for visualization)
+            port_cols = [col for col in df.columns if any(port_indicator in col.lower() 
+                                                        for port_indicator in ['port', 'dst_port', 'src_port'])]
+            for port_col in port_cols:
+                if pd.notna(row[port_col]):
+                    port_counts[str(row[port_col])] += 1
+            
+            # Extract vulnerability type if available
+            vuln_cols = [col for col in df.columns if any(vuln_indicator in col.lower() 
+                                                       for vuln_indicator in ['vulnerability', 'vuln_type', 'attack_type'])]
+            for vuln_col in vuln_cols:
+                if pd.notna(row[vuln_col]):
+                    vulnerability_types[str(row[vuln_col])] += 1
+            
+            # If no specific vulnerability column exists, use the predicted category
+            if not vuln_cols and row['predicted_category'] != 'normal':
+                vulnerability_types[row['predicted_category']] += 1
+            
             log_entries.append(entry)
         
         # Generate time-based trends if timestamps are available
         time_series = None
+        hourly_data = {}
         if timestamp_cols:
             try:
                 df[timestamp_cols[0]] = pd.to_datetime(df[timestamp_cols[0]])
@@ -77,6 +105,17 @@ def analyze_prediction_file(file_path):
                 hourly_counts = df.groupby([pd.Grouper(key=timestamp_cols[0], freq='H'), 'predicted_category']).size().unstack(fill_value=0)
                 # Convert timestamps to strings
                 time_series = {ts.isoformat(): counts.to_dict() for ts, counts in hourly_counts.iterrows()}
+                
+                # Format for line chart visualization
+                timeline_data = []
+                for timestamp, counts in time_series.items():
+                    for category, count in counts.items():
+                        timeline_data.append({
+                            'timestamp': timestamp,
+                            'category': category,
+                            'count': count
+                        })
+                hourly_data = timeline_data
             except Exception as e:
                 print(f"Could not process timestamps in {timestamp_cols[0]}: {str(e)}")
         
@@ -88,6 +127,13 @@ def analyze_prediction_file(file_path):
             for col in prob_cols:
                 category = col.replace('prob_', '')
                 high_confidence_counts[category] = int(sum(df[col] > high_confidence_threshold))
+        
+        # Create risk level breakdown for pie chart visualization
+        risk_level_data = [
+            {'name': 'High', 'value': sum(1 for entry in log_entries if entry['sensitivity'] == 'HIGH')},
+            {'name': 'Medium', 'value': sum(1 for entry in log_entries if entry['sensitivity'] == 'MEDIUM')},
+            {'name': 'Low', 'value': sum(1 for entry in log_entries if entry['sensitivity'] == 'LOW')}
+        ]
         
         # Generate summary
         summary = {
@@ -104,6 +150,20 @@ def analyze_prediction_file(file_path):
                 'low_sensitivity_count': sum(1 for entry in log_entries if entry['sensitivity'] == 'LOW'),
                 'alert_count': sum(1 for entry in log_entries if entry['status'] == 'ALERT'),
                 'info_count': sum(1 for entry in log_entries if entry['status'] == 'INFO')
+            },
+            # Add visualization data
+            'visualization_data': {
+                'bar_chart': {
+                    'vulnerability_types': [{'name': k, 'value': v} for k, v in vulnerability_types.items()],
+                    'port_counts': [{'name': k, 'value': v} for k, v in port_counts.items()]
+                },
+                'pie_chart': {
+                    'risk_levels': risk_level_data,
+                    'attack_breakdown': [{'name': k, 'value': v} for k, v in prediction_counts.items() if k != 'normal']
+                },
+                'line_chart': {
+                    'time_series': hourly_data
+                }
             }
         }
         
@@ -188,18 +248,47 @@ def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description='Generate summaries from log analysis results.')
     parser.add_argument('--input', type=str, required=True, 
-                        help='Directory containing prediction CSV files')
+                        help='Directory containing log files or prediction CSV files')
     parser.add_argument('--output', type=str, default=None, 
                         help='Output file for the summary')
+    parser.add_argument('--model', type=str, default='best_model.pkl',
+                        help='Path to the pickled model file (used if processing raw log files)')
+    parser.add_argument('--process-logs', action='store_true',
+                        help='Process raw log files before generating summary')
     parser.add_argument('--github-token', type=str, default=os.environ.get('GITHUB_TOKEN'),
                         help='GitHub token for AI insights (can also be set via GITHUB_TOKEN env variable)')
     
     args = parser.parse_args()
     
-    print(f"Looking for prediction files in: {args.input}")
+    # Determine if we need to process raw logs first
+    prediction_files = []
+    if args.process_logs:
+        print(f"Processing raw log files in: {args.input}")
+        try:
+            # Load the model
+            model_components = load_model(args.model)
+            
+            # Process log files
+            if os.path.isfile(args.input):
+                # Process a single file
+                output_path = process_log_file(args.input, model_components)
+                if output_path:
+                    prediction_files.append(output_path)
+            elif os.path.isdir(args.input):
+                # Process all CSV files in the directory
+                for filename in os.listdir(args.input):
+                    if filename.lower().endswith('.csv'):
+                        file_path = os.path.join(args.input, filename)
+                        output_path = process_log_file(file_path, model_components)
+                        if output_path:
+                            prediction_files.append(output_path)
+        except Exception as e:
+            print(f"Error processing log files: {str(e)}")
+            sys.exit(1)
+    else:
+        print(f"Looking for prediction files in: {args.input}")
+        prediction_files = load_prediction_files(args.input)
     
-    # Load prediction files
-    prediction_files = load_prediction_files(args.input)
     if not prediction_files:
         print("No prediction files found")
         return
@@ -248,6 +337,84 @@ def main():
             print(f"  LOW: {summary['summary_stats']['low_sensitivity_count']}")
             print(f"  Alerts: {summary['summary_stats']['alert_count']}")
             print(f"  Info: {summary['summary_stats']['info_count']}")
+    
+    # Create report structure for API response
+    report = {
+        'generated_at': datetime.now().isoformat(),
+        'file_summaries': summaries,
+        'ai_insights': ai_insights,
+        'meta': {
+            'total_files_analyzed': len(summaries),
+            'total_records_analyzed': sum(s['total_records'] for s in summaries),
+            'high_sensitivity_total': sum(s['summary_stats']['high_sensitivity_count'] for s in summaries),
+            'alert_status_total': sum(s['summary_stats']['alert_count'] for s in summaries)
+        }
+    }
+    
+    # Return JSON response for API usage
+    response_data = {
+        'summary': report,
+        'visualization_data': {
+            'bar_chart_data': {
+                'vulnerability_types': [],
+                'port_counts': []
+            },
+            'pie_chart_data': {
+                'risk_levels': [],
+                'attack_breakdown': []
+            },
+            'line_chart_data': {
+                'time_series': []
+            }
+        }
+    }
+    
+    # Combine visualization data from all summaries
+    for summary in summaries:
+        if 'visualization_data' in summary:
+            # Append bar chart data
+            response_data['visualization_data']['bar_chart_data']['vulnerability_types'].extend(
+                summary['visualization_data']['bar_chart']['vulnerability_types']
+            )
+            response_data['visualization_data']['bar_chart_data']['port_counts'].extend(
+                summary['visualization_data']['bar_chart']['port_counts']
+            )
+            
+            # Append pie chart data
+            response_data['visualization_data']['pie_chart_data']['risk_levels'].extend(
+                summary['visualization_data']['pie_chart']['risk_levels']
+            )
+            response_data['visualization_data']['pie_chart_data']['attack_breakdown'].extend(
+                summary['visualization_data']['pie_chart']['attack_breakdown']
+            )
+            
+            # Append line chart data
+            response_data['visualization_data']['line_chart_data']['time_series'].extend(
+                summary['visualization_data']['line_chart']['time_series']
+            )
+    
+    # Consolidate data by combining duplicate categories
+    # (This could be enhanced with more sophisticated aggregation if needed)
+    for chart_type in ['bar_chart_data', 'pie_chart_data']:
+        for data_key in response_data['visualization_data'][chart_type].keys():
+            data_dict = {}
+            for item in response_data['visualization_data'][chart_type][data_key]:
+                name = item['name']
+                value = item['value']
+                if name in data_dict:
+                    data_dict[name] += value
+                else:
+                    data_dict[name] = value
+            
+            # Convert back to list format
+            response_data['visualization_data'][chart_type][data_key] = [
+                {'name': k, 'value': v} for k, v in data_dict.items()
+            ]
+    
+    # Print or return the JSON response
+    print("\nGenerated visualization data for frontend")
+    print(json.dumps(response_data, indent=2))
+    return response_data
 
 if __name__ == "__main__":
     main() 
