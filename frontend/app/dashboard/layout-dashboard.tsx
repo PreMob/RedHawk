@@ -1,5 +1,8 @@
 "use client"
 
+import { ChatButton } from "./_components/chat-button"
+import { ChatPanel } from "./_components/chat-panel"
+import Image from "next/image"
 import { useState } from "react"
 import {
     Sidebar,
@@ -33,6 +36,7 @@ import {
     Search,
     Eye,
     AlertCircle,
+    BotMessageSquare,
 } from "lucide-react"
 import { FileUpload } from "@/components/file-upload"
 import { ThreatTable, type Threat } from "@/app/dashboard/_components/threat-table"
@@ -42,9 +46,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input"
 import { mockThreats, mockNodes, mockLinks, mockSummaryData } from "@/lib/mock-data"
 
-export function DashboardLayout() {
+
+interface DashboardLayoutProps {
+    children?: React.ReactNode
+}
+
+export function DashboardLayout({ children }: DashboardLayoutProps) {
     const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null)
     const [threats, setThreats] = useState<Threat[]>(mockThreats)
+    const [isChatOpen, setIsChatOpen] = useState(false)
+    const [unreadMessages, setUnreadMessages] = useState(2)
 
     const handleFileUpload = (data: any[]) => {
         console.log("File uploaded:", data)
@@ -80,14 +91,21 @@ export function DashboardLayout() {
         }, 2000)
     }
 
+    const toggleChat = () => {
+        setIsChatOpen(!isChatOpen)
+        if (!isChatOpen) {
+            setUnreadMessages(0)
+        }
+    }
+
     return (
         <SidebarProvider>
             <div className="flex h-screen bg-black">
-                <Sidebar className="border-r border-red-900/30">
+                <Sidebar className="border-r border-red-900/30 bg-black">
                     <SidebarHeader>
                         <div className="flex items-center gap-2 px-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-red-950">
-                                <span className="text-lg font-bold text-red-500">R</span>
+                              <Image src="/logo.png" alt="Logo" width={32} height={32} className="rounded-lg" />
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-semibold text-white">RedHawk</span>
@@ -148,26 +166,11 @@ export function DashboardLayout() {
                                             <span>Users</span>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
-                                </SidebarMenu>
-                            </SidebarGroupContent>
-                        </SidebarGroup>
-                        <SidebarGroup>
-                            <SidebarGroupLabel className="text-gray-400">Recent Scans</SidebarGroupLabel>
-                            <SidebarGroupContent>
-                                <SidebarMenu>
                                     <SidebarMenuItem>
-                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white">
-                                            <span>Network Scan - 05/17/2025</span>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                    <SidebarMenuItem>
-                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white">
-                                            <span>Web App Scan - 05/15/2025</span>
-                                        </SidebarMenuButton>
-                                    </SidebarMenuItem>
-                                    <SidebarMenuItem>
-                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white">
-                                            <span>Vulnerability Scan - 05/10/2025</span>
+                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white" onClick={toggleChat}>
+                                            <BotMessageSquare className="text-red-500" />
+                                            <span>Chat</span>
+                                            {unreadMessages > 0 && <Badge className="ml-auto bg-red-500 text-white">{unreadMessages}</Badge>}
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 </SidebarMenu>
@@ -178,12 +181,12 @@ export function DashboardLayout() {
                         <div className="flex items-center justify-between p-2">
                             <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8 border border-red-900/50">
-                                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
+                                    <AvatarImage src="/logo.png" alt="WindHawk" />
                                     <AvatarFallback className="bg-red-950 text-red-500">JD</AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-medium text-white">John Doe</span>
-                                    <span className="text-xs text-gray-400">Security Analyst</span>
+                                    <span className="text-sm font-medium text-white">UserName</span>
+                                    <span className="text-xs text-gray-400"></span>
                                 </div>
                             </div>
                             <div className="flex gap-1">
@@ -221,8 +224,8 @@ export function DashboardLayout() {
                                 >
                                     <Bell className="h-5 w-5" />
                                     <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                    3
-                  </span>
+                                        3
+                                    </span>
                                 </Button>
                             </div>
                         </div>
@@ -230,19 +233,21 @@ export function DashboardLayout() {
 
                     {/* Main content */}
                     <main className="flex-1 overflow-auto bg-gradient-to-b from-black to-red-950/10 p-4">
-                        <div className="mx-auto max-w-7xl space-y-4">
-                            {/* Summary Panel */}
-                            <SummaryPanel data={mockSummaryData} />
+                        {children || (
+                            <div className="mx-auto max-w-7xl space-y-4">
+                                {/* Summary Panel */}
+                                <SummaryPanel data={mockSummaryData} />
 
-                            {/* File Upload and Attack Graph */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <FileUpload onFileUpload={handleFileUpload} className="md:col-span-1" />
-                                <AttackGraph nodes={mockNodes} links={mockLinks} className="md:col-span-2" />
+                                {/* File Upload and Attack Graph */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <FileUpload onFileUpload={handleFileUpload} className="md:col-span-1" />
+                                    <AttackGraph nodes={mockNodes} links={mockLinks} className="md:col-span-2" />
+                                </div>
+
+                                {/* Threat Table */}
+                                <ThreatTable threats={threats} onViewDetails={setSelectedThreat} />
                             </div>
-
-                            {/* Threat Table */}
-                            <ThreatTable threats={threats} onViewDetails={setSelectedThreat} />
-                        </div>
+                        )}
                     </main>
                 </div>
             </div>
@@ -353,6 +358,12 @@ export function DashboardLayout() {
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Chat Button */}
+            <ChatButton onClick={toggleChat} />
+
+            {/* Chat Panel */}
+            <ChatPanel isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
         </SidebarProvider>
     )
 }
