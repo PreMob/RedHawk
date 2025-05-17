@@ -1,0 +1,3 @@
+timestamp,source_ip,type,sensitivity,status
+2024-06-05T11:12:45.123Z,192.168.1.200,normal,LOW,INFO
+2024-06-05T11:13:12.456Z,192.168.1.201,probe,MEDIUM,ALERT

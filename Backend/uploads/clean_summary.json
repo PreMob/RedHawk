@@ -1,0 +1,27 @@
+{
+  "file_summaries": [
+    {
+      "total_records": 10,
+      "prediction_counts": {
+        "normal": 5,
+        "probe": 2,
+        "attack": 2,
+        "anomaly": 1
+      },
+      "prediction_percentages": {
+        "normal": 50.0,
+        "probe": 20.0,
+        "attack": 20.0,
+        "anomaly": 10.0
+      },
+      "text_summary": "Analysis of 10 log entries shows the security status is critical. Breakdown by category: normal: 5 entries (50.0%), probe: 2 entries (20.0%), attack: 2 entries (20.0%), anomaly: 1 entries (10.0%). Risk levels: 3 high, 4 medium, and 3 low risk entries.",
+      "recommended_actions": [
+        "Immediately investigate attack incidents and consider isolating affected systems",
+        "Monitor for further suspicious activity from identified source IPs",
+        "Review unusual behavior patterns in the log entries",
+        "Continue monitoring logs for security incidents"
+      ]
+    }
+  ],
+  "timestamp": "2025-05-17T14:38:23.909220"
+}

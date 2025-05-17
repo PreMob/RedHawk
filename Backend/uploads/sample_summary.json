@@ -1,0 +1,164 @@
+{
+  "generated_at": "2025-05-17T13:35:24.520887",
+  "file_summaries": [
+    {
+      "file_name": "sample_log_predictions_20250517_133524.csv",
+      "total_records": 10,
+      "prediction_counts": {
+        "normal": 7,
+        "probe": 3
+      },
+      "prediction_percentages": {
+        "normal": 70.0,
+        "probe": 30.0
+      },
+      "high_confidence_predictions": {
+        "dos": 0,
+        "normal": 5,
+        "probe": 0,
+        "r2l": 0,
+        "u2r": 0
+      },
+      "time_based_analysis": null,
+      "log_entries": [
+        {
+          "timestamp": null,
+          "source_ip": "1500",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "2500",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "800",
+          "type": "probe",
+          "sensitivity": "LOW",
+          "status": "INFO"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "600",
+          "type": "probe",
+          "sensitivity": "MEDIUM",
+          "status": "INFO"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "3000",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "4000",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "5000",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "700",
+          "type": "probe",
+          "sensitivity": "LOW",
+          "status": "INFO"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "1200",
+          "type": "normal",
+          "sensitivity": "LOW",
+          "status": "INFO"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "900",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO"
+        }
+      ],
+      "summary_stats": {
+        "high_sensitivity_count": 5,
+        "medium_sensitivity_count": 2,
+        "low_sensitivity_count": 3,
+        "alert_count": 0,
+        "info_count": 10
+      },
+      "visualization_data": {
+        "bar_chart": {
+          "vulnerability_types": [
+            {
+              "name": "probe",
+              "value": 3
+            }
+          ],
+          "port_counts": [
+            {
+              "name": "0.1",
+              "value": 6
+            },
+            {
+              "name": "0.2",
+              "value": 1
+            },
+            {
+              "name": "0.3",
+              "value": 2
+            },
+            {
+              "name": "0.4",
+              "value": 1
+            }
+          ]
+        },
+        "pie_chart": {
+          "risk_levels": [
+            {
+              "name": "High",
+              "value": 5
+            },
+            {
+              "name": "Medium",
+              "value": 2
+            },
+            {
+              "name": "Low",
+              "value": 3
+            }
+          ],
+          "attack_breakdown": [
+            {
+              "name": "probe",
+              "value": 3
+            }
+          ]
+        },
+        "line_chart": {
+          "time_series": {}
+        }
+      }
+    }
+  ],
+  "ai_insights": null,
+  "meta": {
+    "total_files_analyzed": 1,
+    "total_records_analyzed": 10,
+    "high_sensitivity_total": 5,
+    "alert_status_total": 0
+  }
+}
