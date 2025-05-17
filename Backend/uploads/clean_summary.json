@@ -1,93 +1,423 @@
 {
   "file_summaries": [
     {
-      "total_records": 10,
+      "total_records": 51,
       "prediction_counts": {
-        "normal": 7,
-        "attack": 2,
-        "anomaly": 1
+        "normal": 25,
+        "attack": 11,
+        "probe": 8,
+        "anomaly": 7
       },
       "prediction_percentages": {
-        "normal": 70.0,
-        "attack": 20.0,
-        "anomaly": 10.0
+        "normal": 49.02,
+        "attack": 21.57,
+        "probe": 15.69,
+        "anomaly": 13.73
       },
       "log_entries": [
         {
-          "timestamp": "2024-06-05T08:12:45.123000+00:00",
-          "source_ip": "192.168.1.100",
-          "type": "normal",
-          "sensitivity": "MEDIUM",
-          "status": "INFO",
-          "recommendedAction": "No action required"
-        },
-        {
-          "timestamp": "2024-06-05T08:13:12.456000+00:00",
-          "source_ip": "192.168.1.101",
-          "type": "normal",
-          "sensitivity": "MEDIUM",
-          "status": "INFO",
-          "recommendedAction": "No action required"
-        },
-        {
-          "timestamp": "2024-06-05T08:14:23.789000+00:00",
-          "source_ip": "192.168.1.102",
-          "type": "normal",
-          "sensitivity": "MEDIUM",
-          "status": "INFO",
-          "recommendedAction": "No action required"
-        },
-        {
-          "timestamp": "2024-06-05T08:15:34.321000+00:00",
-          "source_ip": "192.168.1.103",
-          "type": "normal",
-          "sensitivity": "MEDIUM",
-          "status": "INFO",
-          "recommendedAction": "No action required"
-        },
-        {
-          "timestamp": "2024-06-05T08:16:45.654000+00:00",
-          "source_ip": "192.168.1.104",
-          "type": "normal",
-          "sensitivity": "HIGH",
-          "status": "INFO",
-          "recommendedAction": "No action required"
-        },
-        {
-          "timestamp": "2024-06-05T08:17:56.987000+00:00",
-          "source_ip": "192.168.1.105",
-          "type": "normal",
-          "sensitivity": "MEDIUM",
-          "status": "INFO",
-          "recommendedAction": "No action required"
-        },
-        {
-          "timestamp": "2024-06-05T08:18:07.123000+00:00",
-          "source_ip": "192.168.1.106",
-          "type": "attack",
-          "sensitivity": "HIGH",
-          "status": "ALERT",
-          "recommendedAction": "Immediately isolate affected systems and investigate"
-        },
-        {
-          "timestamp": "2024-06-05T08:19:18.456000+00:00",
-          "source_ip": "192.168.1.107",
-          "type": "attack",
-          "sensitivity": "MEDIUM",
-          "status": "ALERT",
-          "recommendedAction": "Immediately isolate affected systems and investigate"
-        },
-        {
-          "timestamp": "2024-06-05T08:20:29.789000+00:00",
-          "source_ip": "192.168.1.108",
+          "timestamp": null,
+          "source_ip": "1500",
           "type": "anomaly",
           "sensitivity": "MEDIUM",
           "status": "ALERT",
           "recommendedAction": "Review unusual behavior and investigate further"
         },
         {
-          "timestamp": "2024-06-05T08:21:30.321000+00:00",
-          "source_ip": "192.168.1.109",
+          "timestamp": null,
+          "source_ip": "2500",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "800",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "600",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "3000",
+          "type": "attack",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "4000",
+          "type": "probe",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "Block source IP and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "5000",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "700",
+          "type": "anomaly",
+          "sensitivity": "HIGH",
+          "status": "ALERT",
+          "recommendedAction": "Review unusual behavior and investigate further"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "1200",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "900",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "port",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "TCP",
+          "type": "attack",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "TCP",
+          "type": "probe",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "Block source IP and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "TCP",
+          "type": "probe",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "Block source IP and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "TCP",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "TCP",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "UDP",
+          "type": "attack",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "TCP",
+          "type": "attack",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "TCP",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "TCP",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "TCP",
+          "type": "attack",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "INFO",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "INFO",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "INFO",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "ALERT",
+          "type": "anomaly",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Review unusual behavior and investigate further"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "ALERT",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "ALERT",
+          "type": "attack",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "ALERT",
+          "type": "probe",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "Block source IP and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "INFO",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "INFO",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "ALERT",
+          "type": "attack",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "80",
+          "type": "probe",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "Block source IP and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "443",
+          "type": "anomaly",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Review unusual behavior and investigate further"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "22",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "22",
+          "type": "attack",
+          "sensitivity": "HIGH",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "22",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "23",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "3389",
+          "type": "anomaly",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Review unusual behavior and investigate further"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "3306",
+          "type": "anomaly",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Review unusual behavior and investigate further"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "443",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "80",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "80",
+          "type": "probe",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "Block source IP and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "80",
+          "type": "probe",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "Block source IP and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "1433",
+          "type": "anomaly",
+          "sensitivity": "HIGH",
+          "status": "ALERT",
+          "recommendedAction": "Review unusual behavior and investigate further"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "1433",
+          "type": "attack",
+          "sensitivity": "HIGH",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "1433",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "80",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "443",
+          "type": "attack",
+          "sensitivity": "HIGH",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "443",
+          "type": "probe",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "Block source IP and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "-1",
+          "type": "attack",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": null,
+          "source_ip": "-1",
           "type": "normal",
           "sensitivity": "MEDIUM",
           "status": "INFO",
@@ -95,24 +425,19 @@
         }
       ],
       "port_analysis": {
-        "80": 1,
-        "443": 1,
-        "8080": 1,
-        "22": 1,
-        "25": 1,
-        "53": 1,
-        "3389": 1,
-        "5900": 1,
-        "1433": 1,
-        "21": 1
+        "0.1": 6,
+        "0.2": 1,
+        "0.3": 2,
+        "0.4": 1
       },
-      "text_summary": "Analysis of 10 log entries shows the security status is critical. Breakdown by category: normal: 7 entries (70.0%), attack: 2 entries (20.0%), anomaly: 1 entries (10.0%). Risk levels: 2 high, 8 medium, and 0 low risk entries.",
+      "text_summary": "Analysis of 51 log entries shows the security status is critical. Breakdown by category: normal: 25 entries (49.02%), attack: 11 entries (21.57%), probe: 8 entries (15.69%), anomaly: 7 entries (13.73%). Risk levels: 15 high, 36 medium, and 0 low risk entries.",
       "recommended_actions": [
         "Immediately investigate attack incidents and consider isolating affected systems",
+        "Monitor for further suspicious activity from identified source IPs",
         "Review unusual behavior patterns in the log entries",
         "Continue monitoring logs for security incidents"
       ]
     }
   ],
-  "timestamp": "2025-05-17T15:31:53.196844"
+  "timestamp": "2025-05-17T16:19:34.844666"
 }

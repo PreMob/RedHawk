@@ -55,7 +55,7 @@ class ChatbotService {
           };
           
           // Write summary to temporary file for assistant
-          const tempDir = path.join(__dirname, '../../uploads');
+          const tempDir = path.join(__dirname, '../uploads');
           tempSummaryPath = path.join(tempDir, `temp_summary_${Date.now()}.json`);
           fs.writeFileSync(tempSummaryPath, JSON.stringify(summaryData, null, 2));
           
@@ -65,7 +65,7 @@ class ChatbotService {
       }
       
       // Prepare command-line arguments
-      const pythonScriptPath = path.join(__dirname, '../../AI/redhawk_assistant.py');
+      const pythonScriptPath = path.join(__dirname, '../AI/redhawk_assistant.py');
       const args = [
         pythonScriptPath,
         '--api-key', process.env.GITHUB_TOKEN || process.env.OPENAI_API_KEY || 'dummy-key',

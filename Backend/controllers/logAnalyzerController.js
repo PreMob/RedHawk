@@ -15,16 +15,16 @@ exports.analyzeLog = async (req, res) => {
     console.log('Processing user log data...');
     
     // Copy uploaded file to consistent location
-    const uploadDir = path.join(__dirname, '../../uploads');
+    const uploadDir = path.join(__dirname, '../uploads');
     const targetFilePath = path.join(uploadDir, 'clean_log.csv');
     
     fs.copyFileSync(req.file.path, targetFilePath);
     console.log(`Copied uploaded file to ${targetFilePath}`);
     
     // Run Python analysis script
-    console.log('Running Python script:', path.join(__dirname, '../../run_analysis.py'));
+    console.log('Running Python script:', path.join(__dirname, '../run_analysis.py'));
     const pythonProcess = spawn('python3', [
-      path.join(__dirname, '../../run_analysis.py'),
+      path.join(__dirname, '../run_analysis.py'),
       '--log-file', targetFilePath,
       '--summary-file', path.join(uploadDir, 'clean_summary.json')
     ]);
