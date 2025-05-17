@@ -1,0 +1,82 @@
+{
+  "generated_at": "2025-05-17T22:15:20.046006",
+  "file_summaries": [
+    {
+      "file_name": "sample_predictions.csv",
+      "total_records": 5,
+      "prediction_counts": {
+        "normal": 2,
+        "attack": 2,
+        "anomaly": 1
+      },
+      "prediction_percentages": {
+        "normal": 40.0,
+        "attack": 40.0,
+        "anomaly": 20.0
+      },
+      "high_confidence_predictions": {
+        "normal": 1,
+        "attack": 2,
+        "anomaly": 0
+      },
+      "time_based_analysis": {
+        "2024-03-16T10:00:00": {
+          "anomaly": 1,
+          "attack": 2,
+          "normal": 2
+        }
+      },
+      "log_entries": [
+        {
+          "timestamp": "2024-03-16T10:00:00",
+          "source_ip": "192.168.1.100",
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO"
+        },
+        {
+          "timestamp": "2024-03-16T10:01:00",
+          "source_ip": "192.168.1.101",
+          "type": "attack",
+          "sensitivity": "HIGH",
+          "status": "ALERT"
+        },
+        {
+          "timestamp": "2024-03-16T10:02:00",
+          "source_ip": "192.168.1.102",
+          "type": "anomaly",
+          "sensitivity": "LOW",
+          "status": "ALERT"
+        },
+        {
+          "timestamp": "2024-03-16T10:03:00",
+          "source_ip": "192.168.1.103",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO"
+        },
+        {
+          "timestamp": "2024-03-16T10:04:00",
+          "source_ip": "192.168.1.104",
+          "type": "attack",
+          "sensitivity": "HIGH",
+          "status": "ALERT"
+        }
+      ],
+      "summary_stats": {
+        "high_sensitivity_count": 3,
+        "medium_sensitivity_count": 1,
+        "low_sensitivity_count": 1,
+        "alert_count": 3,
+        "info_count": 2
+      }
+    }
+  ],
+  "ai_insights": null,
+  "meta": {
+    "total_files_analyzed": 1,
+    "total_records_analyzed": 5,
+    "high_sensitivity_total": 3,
+    "alert_status_total": 3
+  }
+}
