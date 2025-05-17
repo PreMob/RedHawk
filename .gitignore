@@ -9,6 +9,8 @@
 Backend/node_modules
 Backend/venv
 venv/
+Backend/AI/redhawk_env/
+**/redhawk_env/
 
 # next.js
 /.next/
@@ -41,4 +43,23 @@ next-env.d.ts
 
 # clerk configuration
 /.clerk/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.pkl
+
+# Generated files
+*_adapted_*.csv
+*_predictions_*.csv
+log_analysis_summary_*.json
+Backend/AI/*_adapted_*.csv
+Backend/AI/*_predictions_*.csv
+Backend/AI/log_analysis_summary_*.json
+
+# Specific files
 integrated_analysis_example.py
+redhawk_dataset_2.csv
