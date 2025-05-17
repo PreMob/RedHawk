@@ -1,8 +1,9 @@
-import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { AnimatedHeroSection } from "@/components/animated-hero-section"
 import { Server, ChevronRight, BarChart3, Globe, FileText, Network, AlertTriangle } from "lucide-react"
-import {InteractiveHoverButton} from "@/components/magicui/interactive-hover-button";
+
+
 
 export default function Home() {
   return (
@@ -11,13 +12,14 @@ export default function Home() {
       <header className="border-b border-red-900/30 backdrop-blur-sm fixed top-0 w-full z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>
+
+            <Image src="/logo.png" width={40} height={40} alt="RedHawk Logo" className="rounded-lg" />
             <span className="text-xl font-bold tracking-tighter text-red-500">RedHawk</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="#" className="text-sm hover:text-red-500 transition-colors">
-              Home
-            </Link>
+           <Button className="p-4 bg-red-600 text-white hover:bg-red-800 border-white rounded ">
+             Sign In
+           </Button>
           </nav>
           {/*<Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-950 hover:text-white">*/}
           {/*  Get Protected*/}
