@@ -7,10 +7,12 @@
 # dependencies
 /node_modules
 Backend/node_modules
+Backend/Node/node_modules
 Backend/venv
 venv/
 Backend/AI/redhawk_env/
 **/redhawk_env/
+**/node_modules/
 
 # next.js
 /.next/
