@@ -9,6 +9,31 @@ const ScanResultSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  rawResults: {
+    headers: {
+      type: Map,
+      of: String
+    },
+    technologies: [String],
+    outdated: [String],
+    vulnTests: {
+      sqlInjection: [
+        {
+          test: String,
+          length: Number
+        }
+      ],
+      sqlInjectionSuspected: Boolean,
+      xss: [
+        {
+          payload: String,
+          reflected: Boolean
+        }
+      ],
+      xssSuspected: Boolean
+    },
+    errors: [String]
+  },
   vulnerabilities: [
     {
       type: {
@@ -25,20 +50,11 @@ const ScanResultSchema = new mongoose.Schema({
     }
   ],
   summary: {
-    totalVulnerabilities: Number,
-    highSeverity: Number,
-    mediumSeverity: Number,
-    lowSeverity: Number
+    type: String,
+    required: true
   },
   scanDetails: {
     duration: Number,
-    portsScanned: [Number],
-    openPorts: [
-      {
-        port: Number,
-        service: String
-      }
-    ],
     technologies: [String]
   }
 });

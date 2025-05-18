@@ -1,0 +1,80 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.chat-container {
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
+
+.user-message {
+    background-color: #007bff;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    max-width: 80%;
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.assistant-message {
+    background-color: #e9ecef;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    max-width: 80%;
+}
+
+.system-message {
+    color: #6c757d;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-style: italic;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1.5rem;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.btn-floating {
+    position: fixed;
+    right: 2rem;
+    bottom: 2rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+#copy-analysis-id {
+    cursor: pointer;
+}
+
+.table th {
+    position: sticky;
+    top: 0;
+    background: white;
+}
+
+#raw-headers {
+    max-height: 200px;
+    overflow-y: auto;
+} 

@@ -4,6 +4,45 @@ const fs = require('fs');
 const ChatConversation = require('../models/ChatConversation');
 const LogAnalysis = require('../models/LogAnalysis');
 
+// Store mock conversations when MongoDB is unavailable
+const mockConversations = new Map();
+
+// Mock responses for common security questions
+const mockResponses = {
+  general: [
+    "Based on the log analysis, I recommend implementing additional firewall rules to block the suspicious IP addresses detected in the logs.",
+    "The scan shows signs of reconnaissance activity. I suggest reviewing your network security policies and implementing rate limiting on public-facing services.",
+    "Your logs indicate normal traffic patterns with some isolated anomalies. Continue monitoring but no immediate action required based on current data.",
+    "I've analyzed the security logs and found potential brute force attempts targeting your authentication systems. Consider implementing account lockout policies."
+  ],
+  specific: {
+    "dos": "The logs show potential Denial of Service (DoS) attack patterns. I recommend implementing rate limiting and reviewing your DDoS protection strategy.",
+    "sql": "There are indicators of SQL injection attempts in your logs. Review your web application security and ensure proper input validation is in place.",
+    "xss": "Cross-site scripting (XSS) attempts were detected. Implement Content-Security-Policy headers and ensure proper output encoding in your web applications.",
+    "firewall": "Based on the analysis, your firewall configuration appears to be working as expected, but there are some recommended rule updates to improve security posture."
+  }
+};
+
+// Helper function to get a mock response based on user query
+function getMockResponse(query, logAnalysisId) {
+  const lowerQuery = query.toLowerCase();
+  
+  // Check for specific keywords and provide targeted responses
+  if (lowerQuery.includes('dos') || lowerQuery.includes('denial of service')) {
+    return mockResponses.specific.dos;
+  } else if (lowerQuery.includes('sql') || lowerQuery.includes('injection')) {
+    return mockResponses.specific.sql;
+  } else if (lowerQuery.includes('xss') || lowerQuery.includes('cross site')) {
+    return mockResponses.specific.xss;
+  } else if (lowerQuery.includes('firewall')) {
+    return mockResponses.specific.firewall;
+  }
+  
+  // If no specific match, return a general response
+  const randomIndex = Math.floor(Math.random() * mockResponses.general.length);
+  return mockResponses.general[randomIndex];
+}
+
 /**
  * Service to handle communication with the RedHawk Assistant (redhawk_assistant.py)
  */
@@ -17,6 +56,36 @@ class ChatbotService {
    */
   async getResponse(query, sessionId, logAnalysisId = null) {
     try {
+      // Use mock data if MongoDB is unavailable
+      if (global.USE_MOCK_DATA) {
+        console.log('Using mock data for chat response');
+        
+        // Generate mock response
+        const assistantResponse = getMockResponse(query, logAnalysisId);
+        
+        // Store in mock conversation history
+        if (!mockConversations.has(sessionId)) {
+          mockConversations.set(sessionId, {
+            sessionId,
+            relatedLogAnalysisId: logAnalysisId,
+            messages: [],
+            lastActivity: new Date()
+          });
+        }
+        
+        const mockConversation = mockConversations.get(sessionId);
+        
+        // Add user message and assistant response
+        mockConversation.messages.push({ role: 'user', content: query });
+        mockConversation.messages.push({ role: 'assistant', content: assistantResponse });
+        mockConversation.lastActivity = new Date();
+        
+        return {
+          response: assistantResponse,
+          sessionId
+        };
+      }
+      
       // Get log analysis data if ID provided
       let summaryData = null;
       let tempSummaryPath = null;
@@ -168,6 +237,12 @@ class ChatbotService {
    */
   async getConversationHistory(sessionId) {
     try {
+      // Use mock data if MongoDB is unavailable
+      if (global.USE_MOCK_DATA) {
+        console.log('Using mock data for conversation history');
+        return mockConversations.get(sessionId)?.messages || [];
+      }
+      
       const conversation = await ChatConversation.findOne({ sessionId });
       return conversation?.messages || [];
     } catch (error) {

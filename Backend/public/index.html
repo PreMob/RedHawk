@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedHawk Security Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <span class="text-danger">Red</span>Hawk Security
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-tab-pane" type="button" role="tab">URL Scanner</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="log-tab" data-bs-toggle="tab" data-bs-target="#log-tab-pane" type="button" role="tab">Log Analysis</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="chat-tab" data-bs-toggle="tab" data-bs-target="#chat-tab-pane" type="button" role="tab">Security Chat</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="database-tab" data-bs-toggle="tab" data-bs-target="#database-tab-pane" type="button" role="tab">Database View</button>
+            </li>
+        </ul>
+        <div class="tab-content mt-3" id="myTabContent">
+            <!-- URL Scanner Tab -->
+            <div class="tab-pane fade show active" id="url-tab-pane" role="tabpanel" tabindex="0">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">URL Security Scanner</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="url-scan-form">
+                            <div class="mb-3">
+                                <label for="target-url" class="form-label">Target URL</label>
+                                <input type="url" class="form-control" id="target-url" placeholder="https://example.com" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="scan-button">
+                                <span class="spinner-border spinner-border-sm d-none" id="url-spinner" role="status" aria-hidden="true"></span>
+                                Scan URL
+                            </button>
+                        </form>
+                        <div class="mt-4">
+                            <h5>Scan Results</h5>
+                            <div class="alert alert-info d-none" id="url-results-info">No scan performed yet.</div>
+                            <div id="url-results-container" class="d-none">
+                                <div class="mb-3">
+                                    <h6>Summary</h6>
+                                    <div class="alert alert-secondary" id="url-summary"></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Technologies Detected</h6>
+                                        <ul class="list-group" id="technologies-list"></ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Vulnerabilities</h6>
+                                        <ul class="list-group" id="vulnerabilities-list"></ul>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h6>Raw Headers</h6>
+                                    <pre class="bg-light p-3" id="raw-headers"></pre>
+                                </div>
+                                <div class="alert alert-warning mt-3 d-none" id="db-save-status"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Analysis Tab -->
+            <div class="tab-pane fade" id="log-tab-pane" role="tabpanel" tabindex="0">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="card-title mb-0">Log File Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="log-analysis-form" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="log-file" class="form-label">Upload Log File</label>
+                                <input type="file" class="form-control" id="log-file" accept=".csv,.log,.txt" required>
+                            </div>
+                            <div class="mb-3">
+                                <p class="text-muted">Use sample file: <a href="#" id="use-sample-file">clean_log.csv</a></p>
+                            </div>
+                            <button type="submit" class="btn btn-success" id="analyze-button">
+                                <span class="spinner-border spinner-border-sm d-none" id="log-spinner" role="status" aria-hidden="true"></span>
+                                Analyze Logs
+                            </button>
+                        </form>
+                        <div class="mt-4">
+                            <h5>Analysis Results</h5>
+                            <div class="alert alert-info d-none" id="log-results-info">No analysis performed yet.</div>
+                            <div id="log-results-container" class="d-none">
+                                <div class="mb-3">
+                                    <h6>Analysis ID</h6>
+                                    <div class="alert alert-secondary" id="log-analysis-id">
+                                        <span id="analysis-id-value"></span>
+                                        <button class="btn btn-sm btn-outline-secondary float-end" id="copy-analysis-id">Copy</button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <h6>Summary</h6>
+                                    <div class="alert alert-secondary" id="log-summary"></div>
+                                </div>
+                                <div class="mb-3">
+                                    <h6>Threats Detected</h6>
+                                    <table class="table table-striped" id="threats-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Type</th>
+                                                <th>Severity</th>
+                                                <th>Count</th>
+                                                <th>Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="threats-list"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Chat Tab -->
+            <div class="tab-pane fade" id="chat-tab-pane" role="tabpanel" tabindex="0">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="card-title mb-0">Security Assistant Chat</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="log-analysis-id-input" class="form-label">Log Analysis ID</label>
+                            <input type="text" class="form-control" id="log-analysis-id-input" placeholder="Enter the log analysis ID" required>
+                        </div>
+                        <div class="chat-container mb-3" id="chat-messages">
+                            <div class="system-message">
+                                Welcome to RedHawk Security Assistant. Please enter a log analysis ID and start chatting.
+                            </div>
+                        </div>
+                        <form id="chat-form">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="chat-input" placeholder="Ask about security findings..." required>
+                                <button type="submit" class="btn btn-info text-white" id="send-button">
+                                    <span class="spinner-border spinner-border-sm d-none" id="chat-spinner" role="status" aria-hidden="true"></span>
+                                    Send
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database View Tab -->
+            <div class="tab-pane fade" id="database-tab-pane" role="tabpanel" tabindex="0">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0">Database Records</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5>URL Scan Results</h5>
+                            <button class="btn btn-sm btn-outline-secondary" id="refresh-db-button">
+                                <span class="spinner-border spinner-border-sm d-none" id="db-spinner" role="status" aria-hidden="true"></span>
+                                Refresh Data
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="scan-results-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>URL</th>
+                                        <th>Scan Date</th>
+                                        <th>Vulnerabilities</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scan-results-body"></tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-info d-none" id="db-results-info">No scan results in database.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Details -->
+    <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resultModalLabel">Scan Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modal-body-content">
+                    <!-- Details will be inserted here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html> 
