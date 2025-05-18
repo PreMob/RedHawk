@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
+import { useLogAnalysis } from "@/hooks/use-log-analysis"
 
 interface Message {
   id: string
@@ -29,6 +30,9 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
+  // Get the analysis data to provide context to the chat
+  const { summary, threats } = useLogAnalysis();
+  
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -47,6 +51,7 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
   const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -55,22 +60,46 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Simulate agent typing
-  useEffect(() => {
-    if (messages.length > 0 && messages[messages.length - 1].sender === "user") {
-      setIsTyping(true)
-      const timer = setTimeout(() => {
-        setIsTyping(false)
-        simulateAgentResponse()
-      }, 1500)
-      return () => clearTimeout(timer)
+  // Send message to the backend API
+  const sendMessageToApi = async (message: string) => {
+    try {
+      // Get the latest analysis ID if available
+      const logAnalysisId = summary ? summary.logAnalysisId : null;
+      
+      const response = await fetch('/api/chat/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message,
+          sessionId,  // Include the session ID if we have one
+          logAnalysisId  // Include the log analysis ID if available
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error communicating with chat assistant');
+      }
+      
+      const data = await response.json();
+      
+      // Store the session ID for future messages
+      if (data.sessionId && !sessionId) {
+        setSessionId(data.sessionId);
+      }
+      
+      return data.response;
+    } catch (error) {
+      console.error('Error sending message to API:', error);
+      return "I'm sorry, I encountered an error processing your request. Please try again.";
     }
-  }, [messages])
-
-  const handleSendMessage = () => {
+  };
+  
+  const handleSendMessage = async () => {
     if (inputValue.trim() === "") return
 
-    const newMessage: Message = {
+    const newUserMessage: Message = {
       id: Date.now().toString(),
       content: inputValue,
       sender: "user",
@@ -79,42 +108,70 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
       isEncrypted: true,
     }
 
-    setMessages((prev) => [...prev, newMessage])
+    setMessages((prev) => [...prev, newUserMessage])
     setInputValue("")
 
     // Update status to sent after a delay
     setTimeout(() => {
-      setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg)))
-    }, 1000)
-  }
-
-  const simulateAgentResponse = () => {
-    const responses = [
-      "I've analyzed your network logs and found several suspicious activities. Would you like me to generate a detailed report?",
-      "The threat has been identified and quarantined. Our system has blocked the malicious IP address.",
-      "I've detected unusual login attempts from IP 192.168.1.105. This might indicate a potential brute force attack.",
-      "The security scan is complete. No critical vulnerabilities were found, but there are 3 medium-risk issues that should be addressed.",
-      "I've updated the firewall rules based on the latest threat intelligence. Your network is now protected against the recent ransomware variant.",
-    ]
-
-    const threatLevels: ("none" | "low" | "medium" | "high" | "critical")[] = [
-      "none",
-      "low",
-      "medium",
-      "high",
-      "critical",
-    ]
-
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      content: responses[Math.floor(Math.random() * responses.length)],
-      sender: "agent",
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      isEncrypted: true,
-      threatLevel: threatLevels[Math.floor(Math.random() * threatLevels.length)],
+      setMessages((prev) => prev.map((msg) => (msg.id === newUserMessage.id ? { ...msg, status: "delivered" } : msg)))
+    }, 500)
+    
+    // Show typing indicator
+    setIsTyping(true)
+    
+    // Get response from API
+    try {
+      const assistantResponse = await sendMessageToApi(inputValue);
+      
+      // Create new message from assistant
+      const newAgentMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: assistantResponse,
+        sender: "agent",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        isEncrypted: true,
+        threatLevel: determineThreatLevel(assistantResponse),
+      }
+      
+      // Hide typing indicator and add message
+      setIsTyping(false)
+      setMessages((prev) => [...prev, newAgentMessage])
+    } catch (error) {
+      console.error('Error in chat communication:', error);
+      
+      // Hide typing indicator
+      setIsTyping(false)
+      
+      // Add error message
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm sorry, I encountered an error. Please try again.",
+        sender: "agent",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        isEncrypted: true,
+        threatLevel: "none",
+      }
+      
+      setMessages((prev) => [...prev, errorMessage])
     }
-
-    setMessages((prev) => [...prev, newMessage])
+  }
+  
+  // Helper function to determine the threat level from the response
+  const determineThreatLevel = (response: string): "none" | "low" | "medium" | "high" | "critical" => {
+    const lowercaseResponse = response.toLowerCase();
+    
+    if (lowercaseResponse.includes('critical') || lowercaseResponse.includes('urgent') || 
+        lowercaseResponse.includes('immediate action')) {
+      return "critical";
+    } else if (lowercaseResponse.includes('high risk') || lowercaseResponse.includes('severe')) {
+      return "high";
+    } else if (lowercaseResponse.includes('medium') || lowercaseResponse.includes('moderate')) {
+      return "medium";
+    } else if (lowercaseResponse.includes('low risk') || lowercaseResponse.includes('minor')) {
+      return "low";
+    }
+    
+    return "none";
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -131,73 +188,43 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files && files.length > 0) {
-      // In a real app, you would handle file upload here
+      // In a real app, you'd upload the file to a server here
       const fileName = files[0].name
-      const newMessage: Message = {
+      
+      // Create a message about the file
+      const fileMessage: Message = {
         id: Date.now().toString(),
         content: `Uploaded file: ${fileName}`,
         sender: "user",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        status: "sending",
-        isEncrypted: true,
+        status: "delivered",
       }
-
-      setMessages((prev) => [...prev, newMessage])
-
-      // Update status to sent after a delay
+      
+      setMessages((prev) => [...prev, fileMessage])
+      
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+      
+      // Show typing indicator
+      setIsTyping(true)
+      
+      // Simulate agent response to file upload after a delay
       setTimeout(() => {
-        setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg)))
-      }, 1000)
+        const responseMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          content: `I've received your file "${fileName}". Would you like me to analyze it for security issues?`,
+          sender: "agent",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          isEncrypted: true,
+        }
+        
+        setIsTyping(false)
+        setMessages((prev) => [...prev, responseMessage])
+      }, 1500)
     }
   }
-
-  const getThreatLevelIcon = (level?: "none" | "low" | "medium" | "high" | "critical") => {
-    switch (level) {
-      case "critical":
-        return <AlertTriangle className="h-4 w-4 text-red-500" />
-      case "high":
-        return <AlertTriangle className="h-4 w-4 text-amber-500" />
-      case "medium":
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />
-      case "low":
-        return <Shield className="h-4 w-4 text-green-500" />
-      default:
-        return <Shield className="h-4 w-4 text-gray-500" />
-    }
-  }
-
-  const getThreatLevelBadge = (level?: "none" | "low" | "medium" | "high" | "critical") => {
-    switch (level) {
-      case "critical":
-        return (
-          <Badge variant="outline" className="border-red-500 bg-red-950/30 text-red-500">
-            Critical Threat
-          </Badge>
-        )
-      case "high":
-        return (
-          <Badge variant="outline" className="border-amber-500 bg-amber-950/30 text-amber-500">
-            High Threat
-          </Badge>
-        )
-      case "medium":
-        return (
-          <Badge variant="outline" className="border-yellow-500 bg-yellow-950/30 text-yellow-500">
-            Medium Threat
-          </Badge>
-        )
-      case "low":
-        return (
-          <Badge variant="outline" className="border-green-500 bg-green-950/30 text-green-500">
-            Low Threat
-          </Badge>
-        )
-      default:
-        return null
-    }
-  }
-
-  if (!isOpen) return null
 
   return (
     <Card
@@ -259,59 +286,53 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
                 message.sender === "system" && "max-w-full w-full"
               )}>
                 {message.sender === "system" ? (
-                  <div className="flex items-center justify-center">
-                    <div className="px-3 py-1 rounded-full bg-red-950/20 border border-red-900/30 text-xs text-gray-400">
-                      {message.content}
-                    </div>
-                  </div>
+                  <div className="text-xs text-center text-gray-500">{message.content}</div>
                 ) : (
-                  <>
-                    <div
-                      className={cn(
-                        "rounded-lg px-4 py-2 block w-full overflow-hidden",
-                        message.sender === "user"
-                          ? "bg-red-950/30 text-white rounded-tr-none"
-                          : "bg-gray-900 text-white rounded-tl-none",
-                        message.threatLevel && message.threatLevel !== "none" && "border-l-2",
-                        message.threatLevel === "critical" && "border-l-red-500",
-                        message.threatLevel === "high" && "border-l-amber-500",
-                        message.threatLevel === "medium" && "border-l-yellow-500",
-                        message.threatLevel === "low" && "border-l-green-500"
-                      )}
-                    >
-                      {message.threatLevel && message.threatLevel !== "none" && (
-                        <div className="flex items-center gap-1 mb-1">
-                          {getThreatLevelIcon(message.threatLevel)}
-                          {getThreatLevelBadge(message.threatLevel)}
-                        </div>
-                      )}
-                      <p className="text-sm break-words whitespace-normal overflow-wrap-anywhere">{message.content}</p>
-                      <div className="flex items-center justify-end gap-1 mt-1">
-                        {message.isEncrypted && <Shield className="h-3 w-3 text-gray-500" />}
-                        <span className="text-xs text-gray-500">{message.timestamp}</span>
+                  <div
+                    className={cn(
+                      "rounded-lg px-4 py-2 inline-block",
+                      message.sender === "user"
+                        ? "bg-red-950 text-white rounded-br-none"
+                        : "bg-gray-900 text-white rounded-tl-none"
+                    )}
+                  >
+                    <div className="space-y-2">
+                      <div className="break-words">{message.content}</div>
+
+                      <div className="flex items-center justify-end gap-2">
+                        {message.isEncrypted && (
+                          <Shield className="h-3 w-3 text-emerald-500" />
+                        )}
+
+                        {message.threatLevel && message.threatLevel !== "none" && (
+                          <Badge className={cn(
+                            "text-[10px] px-1 py-0 h-4",
+                            message.threatLevel === "critical" ? "bg-red-500 text-white" :
+                            message.threatLevel === "high" ? "bg-orange-500 text-white" :
+                            message.threatLevel === "medium" ? "bg-amber-500 text-black" :
+                            "bg-emerald-500 text-white"
+                          )}>
+                            <AlertTriangle className={cn("h-2 w-2 mr-0.5", message.threatLevel !== "medium" && "text-white")} />
+                            {message.threatLevel}
+                          </Badge>
+                        )}
+
+                        <span className="text-[10px] text-gray-500">{message.timestamp}</span>
+
                         {message.sender === "user" && message.status && (
-                          <span className="text-xs text-gray-500">
-                            {message.status === "sending" && "•"}
-                            {message.status === "sent" && "✓"}
-                            {message.status === "delivered" && "✓✓"}
-                            {message.status === "read" && "✓✓"}
-                            {message.status === "error" && "!"}
+                          <span className="text-[10px] text-gray-500">
+                            {message.status === "sending" ? "sending..." : message.status}
                           </span>
                         )}
                       </div>
                     </div>
-                    {message.sender === "agent" && (
-                      <div className="flex items-center gap-1 mt-1 ml-1">
-                        <span className="text-xs text-gray-500">RedHawk Agent</span>
-                      </div>
-                    )}
-                  </>
+                  </div>
                 )}
               </div>
               {message.sender === "user" && (
-                <Avatar className="h-8 w-8 mt-1 border border-red-900/50">
-                  <AvatarImage src="/placeholder-user.jpg" alt="John Doe" />
-                  <AvatarFallback className="bg-gray-800 text-gray-300">
+                <Avatar className="h-8 w-8 mt-1 border border-red-900/50 flex-shrink-0">
+                  <AvatarImage src="/placeholder-user.png" alt="User" />
+                  <AvatarFallback className="bg-zinc-800 text-white">
                     <UserIcon className="h-4 w-4" />
                   </AvatarFallback>
                 </Avatar>
@@ -344,46 +365,29 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
           )}
           <div ref={messagesEndRef} />
         </div>
-        <div className="p-3 border-t border-red-900/30">
-          <div className="flex items-center gap-2">
+        <div className="p-4 border-t border-red-900/30">
+          <div className="flex gap-2">
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9 border-red-900/30 bg-black text-gray-400 hover:bg-red-950 hover:text-white"
+              className="h-9 w-9 border-red-900/30 bg-transparent text-gray-400 hover:bg-red-950 hover:text-white"
               onClick={handleFileButtonClick}
             >
               <Paperclip className="h-4 w-4" />
-              <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileChange}
+              />
             </Button>
             <Input
+              className="h-9 bg-transparent border-red-900/30 text-white placeholder-gray-500 focus-visible:ring-red-900/30"
               placeholder="Type your message..."
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="h-9 bg-black border-red-900/30 focus-visible:ring-red-500 text-white"
             />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-9 border-red-900/30 bg-black text-gray-400 hover:bg-red-950 hover:text-white"
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-black border-red-900/30">
-                <DropdownMenuItem className="text-gray-400 focus:bg-red-950 focus:text-white">
-                  Request Security Scan
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-gray-400 focus:bg-red-950 focus:text-white">
-                  Upload Log Files
-                </DropdownMenuItem>
-                <DropdownMenuItem className="text-gray-400 focus:bg-red-950 focus:text-white">
-                  Clear Conversation
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
             <Button
               className="h-9 bg-red-600 hover:bg-red-700 text-white"
               onClick={handleSendMessage}

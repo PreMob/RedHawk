@@ -2,16 +2,72 @@
 
 import { DashboardLayout } from "./layout-dashboard"
 import { ThreatTable } from "./_components/threat-table"
-import { mockThreats } from "@/lib/mock-data"
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AnomaliesAreaChart } from "./_components/anamolity-area-chart"
 import { VulnerabilityBarChart } from "./_components/vurnability-bar-chart"
 import { RiskDonutChart } from "./_components/risk-donut-chart"
 import { StatsCard } from "./_components/stats-card"
+import { useLogAnalysis } from "@/hooks/use-log-analysis"
 
 export default function DashboardPage() {
-    const [threats, setThreats] = useState(mockThreats)
+    // Use the real data from the API instead of mock data
+    const { threats, summary, loading, error, refetch } = useLogAnalysis()
+    
+    // Helper function to count threats by severity
+    const countThreatsBySeverity = (severity: string) => {
+        if (!threats?.length) return 0;
+        return threats.filter(threat => threat.severity === severity).length;
+    }
+    
+    // Helper function to count mitigated threats
+    const countMitigatedThreats = () => {
+        if (!threats?.length) return 0;
+        return threats.filter(threat => 
+            threat.status === 'mitigated'
+        ).length;
+    }
+    
+    // Helper function to count threats by type for the pie chart
+    const getThreatTypeData = () => {
+        if (!threats?.length) return [];
+        const typeCounts: Record<string, number> = {};
+        
+        threats.forEach(threat => {
+            if (threat.type) {
+                if (!typeCounts[threat.type]) {
+                    typeCounts[threat.type] = 0;
+                }
+                typeCounts[threat.type]++;
+            }
+        });
+        
+        return Object.entries(typeCounts).map(([type, count]) => ({
+            type,
+            count
+        }));
+    }
+    
+    // Helper function to count anomalies
+    const countAnomalies = () => {
+        if (!threats?.length) return 0;
+        return threats.filter(threat => 
+            threat.type === 'Anomaly' || 
+            threat.type === 'Probe' || 
+            threat.severity === 'critical'
+        ).length;
+    }
+    
+    // Calculate total targets based on unique IP addresses
+    const calculateTotalTargets = () => {
+        if (!threats?.length) return 0;
+        const uniqueIps = new Set<string>();
+        threats.forEach(threat => {
+            if (threat.sourceIp) uniqueIps.add(threat.sourceIp);
+            if (threat.destinationIp) uniqueIps.add(threat.destinationIp);
+        });
+        return uniqueIps.size || 0;
+    }
 
     return (
         <DashboardLayout>
@@ -20,36 +76,47 @@ export default function DashboardPage() {
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <StatsCard title="Total Targets Scanned" value="125" />
-                    <StatsCard title="Total Vulnerabilities Found" value="53" />
-                    <StatsCard title="High-Risk Hosts" value="20" />
-                    <StatsCard title="Anomalies Detected" value="15" />
+                    <StatsCard 
+                        title="Total Targets Scanned" 
+                        value={loading ? "Loading..." : calculateTotalTargets().toString()}
+                    />
+                    <StatsCard 
+                        title="Total Vulnerabilities Found" 
+                        value={loading ? "Loading..." : threats?.length.toString() || "0"} 
+                    />
+                    <StatsCard 
+                        title="High-Risk Hosts" 
+                        value={loading ? "Loading..." : (countThreatsBySeverity('critical') + countThreatsBySeverity('high')).toString()} 
+                    />
+                    <StatsCard 
+                        title="Anomalies Detected" 
+                        value={loading ? "Loading..." : countAnomalies().toString()} 
+                    />
                 </div>
 
                 {/* Charts */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <Card className="border-red-900/30 bg-black">
-                        <CardHeader className="pb-2">
+                        <CardHeader>
+                            <CardTitle className="text-lg font-semibold text-white">Risk Level Distribution</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <RiskDonutChart />
+                        </CardContent>
+                    </Card>
+
+                    <Card className="border-red-900/30 bg-black">
+                        <CardHeader>
                             <CardTitle className="text-lg font-semibold text-white">Vulnerability Types</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <VulnerabilityBarChart />
                         </CardContent>
                     </Card>
-
-                    <Card className="border-red-900/30 bg-black">
-                        <CardHeader className="pb-2">
-                            <CardTitle className="text-lg font-semibold text-white">Risk Level</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <RiskDonutChart />
-                        </CardContent>
-                    </Card>
                 </div>
 
-                {/* Anomalies Area Chart - Main Feature */}
                 <Card className="border-red-900/30 bg-black">
-                    <CardHeader className="pb-2">
+                    <CardHeader>
                         <CardTitle className="text-lg font-semibold text-white">Anomalies Over Time</CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -57,8 +124,14 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                {/* Threat Table */}
-                <ThreatTable threats={threats} />
+                <Card className="border-red-900/30 bg-black">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle className="text-lg font-semibold text-white">Active Threats</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ThreatTable threats={threats || []} loading={loading} error={error} />
+                    </CardContent>
+                </Card>
             </div>
         </DashboardLayout>
     )

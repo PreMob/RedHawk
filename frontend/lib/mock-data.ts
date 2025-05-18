@@ -109,3 +109,22 @@ export const mockThreats: Threat[] = [
     description: "Reflected XSS vulnerability in error messages. Input sanitization needed.",
   },
 ]
+
+// Add mock nodes for network graph
+export const mockNodes = [
+  { id: "server-1", label: "Web Server", group: "server" },
+  { id: "server-2", label: "Database Server", group: "server" },
+  { id: "server-3", label: "Application Server", group: "server" },
+  { id: "client-1", label: "Admin Client", group: "client" },
+  { id: "client-2", label: "User Client", group: "client" },
+  { id: "attacker-1", label: "External Attacker", group: "attacker" },
+];
+
+// Add mock links for network graph
+export const mockLinks = [
+  { source: "client-1", target: "server-1", label: "HTTPS" },
+  { source: "client-2", target: "server-1", label: "HTTPS" },
+  { source: "server-1", target: "server-2", label: "SQL" },
+  { source: "server-1", target: "server-3", label: "API" },
+  { source: "attacker-1", target: "server-1", label: "Attack" },
+];

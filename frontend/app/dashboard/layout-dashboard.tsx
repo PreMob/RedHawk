@@ -46,6 +46,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input"
 import { mockNodes, mockLinks } from "@/lib/mock-data"
 import { useLogAnalysis } from "@/hooks/use-log-analysis"
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 
 interface DashboardLayoutProps {
@@ -57,6 +59,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     const { threats, summary, loading, error, refetch } = useLogAnalysis()
     const [isChatOpen, setIsChatOpen] = useState(false)
     const [unreadMessages, setUnreadMessages] = useState(2)
+    const pathname = usePathname()
 
     const handleFileUpload = async (data: any[]) => {
         console.log("File uploaded:", data)
@@ -92,52 +95,68 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             <SidebarGroupContent>
                                 <SidebarMenu>
                                     <SidebarMenuItem>
-                                        <SidebarMenuButton isActive className="data-[active=true]:bg-red-950 data-[active=true]:text-white">
-                                            <Home className="text-red-500" />
-                                            <span>Dashboard</span>
-                                        </SidebarMenuButton>
+                                        <Link href="/dashboard" className="w-full">
+                                            <SidebarMenuButton isActive={pathname === '/dashboard'} className="data-[active=true]:bg-red-950 data-[active=true]:text-white">
+                                                <Home className="text-red-500" />
+                                                <span>Dashboard</span>
+                                            </SidebarMenuButton>
+                                        </Link>
                                     </SidebarMenuItem>
                                     <SidebarMenuItem>
-                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white">
-                                            <Shield className="text-red-500" />
-                                            <span>Threats</span>
-                                        </SidebarMenuButton>
+                                        <Link href="/threats" className="w-full">
+                                            <SidebarMenuButton isActive={pathname === '/threats'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
+                                                <Shield className="text-red-500" />
+                                                <span>Threats</span>
+                                            </SidebarMenuButton>
+                                        </Link>
                                     </SidebarMenuItem>
                                     <SidebarMenuItem>
-                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white">
-                                            <AlertTriangle className="text-red-500" />
-                                            <span>Vulnerabilities</span>
-                                        </SidebarMenuButton>
+                                        <Link href="/vulnerabilities" className="w-full">
+                                            <SidebarMenuButton isActive={pathname === '/vulnerabilities'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
+                                                <AlertTriangle className="text-red-500" />
+                                                <span>Vulnerabilities</span>
+                                            </SidebarMenuButton>
+                                        </Link>
                                     </SidebarMenuItem>
                                     <SidebarMenuItem>
-                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white">
-                                            <Server className="text-red-500" />
-                                            <span>Assets</span>
-                                        </SidebarMenuButton>
+                                        <Link href="/assets" className="w-full">
+                                            <SidebarMenuButton isActive={pathname === '/assets'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
+                                                <Server className="text-red-500" />
+                                                <span>Assets</span>
+                                            </SidebarMenuButton>
+                                        </Link>
                                     </SidebarMenuItem>
                                     <SidebarMenuItem>
-                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white">
-                                            <Network className="text-red-500" />
-                                            <span>Network</span>
-                                        </SidebarMenuButton>
+                                        <Link href="/network" className="w-full">
+                                            <SidebarMenuButton isActive={pathname === '/network'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
+                                                <Network className="text-red-500" />
+                                                <span>Network</span>
+                                            </SidebarMenuButton>
+                                        </Link>
                                     </SidebarMenuItem>
                                     <SidebarMenuItem>
-                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white">
-                                            <FileText className="text-red-500" />
-                                            <span>Logs</span>
-                                        </SidebarMenuButton>
+                                        <Link href="/logs" className="w-full">
+                                            <SidebarMenuButton isActive={pathname === '/logs'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
+                                                <FileText className="text-red-500" />
+                                                <span>Logs</span>
+                                            </SidebarMenuButton>
+                                        </Link>
                                     </SidebarMenuItem>
                                     <SidebarMenuItem>
-                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white">
-                                            <BarChart2 className="text-red-500" />
-                                            <span>Reports</span>
-                                        </SidebarMenuButton>
+                                        <Link href="/reports" className="w-full">
+                                            <SidebarMenuButton isActive={pathname === '/reports'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
+                                                <BarChart2 className="text-red-500" />
+                                                <span>Reports</span>
+                                            </SidebarMenuButton>
+                                        </Link>
                                     </SidebarMenuItem>
                                     <SidebarMenuItem>
-                                        <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white">
-                                            <Users className="text-red-500" />
-                                            <span>Users</span>
-                                        </SidebarMenuButton>
+                                        <Link href="/users" className="w-full">
+                                            <SidebarMenuButton isActive={pathname === '/users'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
+                                                <Users className="text-red-500" />
+                                                <span>Users</span>
+                                            </SidebarMenuButton>
+                                        </Link>
                                     </SidebarMenuItem>
                                     <SidebarMenuItem>
                                         <SidebarMenuButton className="hover:bg-red-950/50 hover:text-white" onClick={toggleChat}>

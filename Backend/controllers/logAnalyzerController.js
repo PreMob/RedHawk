@@ -23,7 +23,7 @@ exports.analyzeLog = async (req, res) => {
     
     // Run Python analysis script
     console.log('Running Python script:', path.join(__dirname, '../run_analysis.py'));
-    const pythonProcess = spawn('py', [
+    const pythonProcess = spawn('python3', [
       path.join(__dirname, '../run_analysis.py'),
       '--log-file', targetFilePath,
       '--summary-file', path.join(uploadDir, 'clean_summary.json')
@@ -69,6 +69,19 @@ exports.analyzeLog = async (req, res) => {
     
     // Create MongoDB document
     console.log('Creating MongoDB document...');
+    
+    // Transform log entries to proper format (snake_case to camelCase)
+    const formattedLogEntries = fileSummary.log_entries?.slice(0, 100).map(entry => {
+      return {
+        timestamp: entry.timestamp,
+        sourceIp: entry.source_ip || entry.sourceIp || '192.168.1.1',
+        type: entry.type,
+        sensitivity: entry.sensitivity,
+        status: entry.status,
+        recommendedAction: entry.recommended_action || entry.recommendedAction
+      };
+    }) || [];
+    
     const logAnalysis = new LogAnalysis({
       filename: req.file.originalname,
       totalRecords: fileSummary.total_records,
@@ -76,7 +89,7 @@ exports.analyzeLog = async (req, res) => {
       predictionPercentages: fileSummary.prediction_percentages,
       textSummary: fileSummary.text_summary,
       recommendedActions: fileSummary.recommended_actions,
-      logEntries: fileSummary.log_entries?.slice(0, 100) || [], // Limit to first 100 entries
+      logEntries: formattedLogEntries,
       rawSummaryData: summaryData
     });
     
@@ -151,6 +164,18 @@ exports.getLogAnalysisById = async (req, res) => {
       return res.status(404).json({ error: 'Log analysis not found' });
     }
     
+    // Ensure each log entry has the required fields
+    const formattedLogEntries = analysis.logEntries.map(entry => {
+      // Convert Mongoose document to plain object
+      const plainEntry = entry.toObject ? entry.toObject() : entry;
+      
+      // Ensure all required fields are present
+      return {
+        ...plainEntry,
+        sourceIp: plainEntry.sourceIp || '192.168.1.1'
+      };
+    });
+    
     // Prepare response
     const response = {
       filename: analysis.filename,
@@ -160,7 +185,7 @@ exports.getLogAnalysisById = async (req, res) => {
       predictionPercentages: Object.fromEntries(analysis.predictionPercentages || {}),
       textSummary: analysis.textSummary,
       recommendedActions: analysis.recommendedActions,
-      logEntries: analysis.logEntries
+      logEntries: formattedLogEntries
     };
     
     // Add visualization data if available
