@@ -322,7 +322,7 @@ export function AnimatedHeroSection() {
               Protecting your digital assets with advanced AI-powered threat detection and real-time monitoring.
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
-              <Link href="/dashboard">
+              <Link href="/onbording">
               <InteractiveHoverButton className="border-red-500 text-red-500 hover:bg-red-950 hover:text-white">
                 Get Protected
               </InteractiveHoverButton>

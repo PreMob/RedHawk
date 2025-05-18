@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <header className="border-b border-red-900/30 backdrop-blur-sm fixed top-0 w-full z-50">
+      <header className="border-b border-red-900/30 backdrop-blur-sm sticky top-0 w-full z-50 bg-black/90">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
 
@@ -17,9 +17,9 @@ export default function Home() {
             <span className="text-xl font-bold tracking-tighter text-red-500">RedHawk</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
-           <Button className="p-4 bg-red-600 text-white hover:bg-red-800 border-white rounded ">
-             Sign In
-           </Button>
+            <Button className="p-4 bg-red-600 text-white hover:bg-red-800 border-white rounded ">
+              Sign In
+            </Button>
           </nav>
           {/*<Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-950 hover:text-white">*/}
           {/*  Get Protected*/}
