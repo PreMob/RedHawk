@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const ChatConversation = require('../models/ChatConversation');
 const LogAnalysis = require('../models/LogAnalysis');
+const markdownStructure = require('../utils/markdownStructure');
 
 // Store mock conversations when MongoDB is unavailable
 const mockConversations = new Map();
@@ -218,9 +219,37 @@ class ChatbotService {
             // Continue anyway since we have the response
           }
           
+          // Format response with markdown if requested
+          let formattedResponse = assistantResponse;
+          
+          // If the query contains 'markdown' or 'format', enhance the response with markdown
+          if (query.toLowerCase().includes('markdown') || query.toLowerCase().includes('format')) {
+            try {
+              // Get log analysis data if available
+              let metadata = {};
+              
+              if (logAnalysis) {
+                metadata = {
+                  logAnalysis,
+                  securityLevel: logAnalysis.highSensitivityCount > 0 ? 'HIGH' : 
+                                 logAnalysis.mediumSensitivityCount > 0 ? 'MEDIUM' : 'LOW',
+                  timestamp: logAnalysis.timestamp
+                };
+              }
+              
+              // Format the response as markdown
+              formattedResponse = markdownStructure.formatRedHawkResponse(assistantResponse, metadata);
+              console.log('Response formatted as markdown');
+            } catch (mdError) {
+              console.error('Error formatting response as markdown:', mdError);
+              // Continue with unformatted response
+            }
+          }
+          
           resolve({ 
-            response: assistantResponse,
-            sessionId
+            response: formattedResponse,
+            sessionId,
+            format: query.toLowerCase().includes('markdown') ? 'markdown' : 'text'
           });
         });
       });
