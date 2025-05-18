@@ -3,33 +3,33 @@
     {
       "total_records": 20,
       "prediction_counts": {
-        "normal": 9,
-        "probe": 5,
-        "attack": 4,
-        "anomaly": 2
+        "normal": 12,
+        "attack": 5,
+        "probe": 2,
+        "anomaly": 1
       },
       "prediction_percentages": {
-        "normal": 45.0,
-        "probe": 25.0,
-        "attack": 20.0,
-        "anomaly": 10.0
+        "normal": 60.0,
+        "attack": 25.0,
+        "probe": 10.0,
+        "anomaly": 5.0
       },
       "log_entries": [
         {
           "timestamp": "2023-05-17T10:00:01",
           "source_ip": "192.168.1.10",
           "type": "attack",
-          "sensitivity": "MEDIUM",
+          "sensitivity": "HIGH",
           "status": "ALERT",
           "recommendedAction": "Immediately isolate affected systems and investigate"
         },
         {
           "timestamp": "2023-05-17T10:01:15",
           "source_ip": "192.168.1.15",
-          "type": "probe",
-          "sensitivity": "MEDIUM",
+          "type": "normal",
+          "sensitivity": "HIGH",
           "status": "INFO",
-          "recommendedAction": "Block source IP and investigate"
+          "recommendedAction": "No action required"
         },
         {
           "timestamp": "2023-05-17T10:02:30",
@@ -43,17 +43,17 @@
           "timestamp": "2023-05-17T10:03:45",
           "source_ip": "192.168.1.100",
           "type": "normal",
-          "sensitivity": "MEDIUM",
+          "sensitivity": "HIGH",
           "status": "INFO",
           "recommendedAction": "No action required"
         },
         {
           "timestamp": "2023-05-17T10:04:10",
           "source_ip": "192.168.1.100",
-          "type": "attack",
-          "sensitivity": "MEDIUM",
-          "status": "ALERT",
-          "recommendedAction": "Immediately isolate affected systems and investigate"
+          "type": "normal",
+          "sensitivity": "HIGH",
+          "status": "INFO",
+          "recommendedAction": "No action required"
         },
         {
           "timestamp": "2023-05-17T10:05:30",
@@ -66,50 +66,50 @@
         {
           "timestamp": "2023-05-17T10:06:15",
           "source_ip": "192.168.1.100",
+          "type": "attack",
+          "sensitivity": "MEDIUM",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
+        },
+        {
+          "timestamp": "2023-05-17T10:07:00",
+          "source_ip": "192.168.1.100",
           "type": "probe",
           "sensitivity": "MEDIUM",
           "status": "INFO",
           "recommendedAction": "Block source IP and investigate"
         },
         {
-          "timestamp": "2023-05-17T10:07:00",
-          "source_ip": "192.168.1.100",
-          "type": "normal",
-          "sensitivity": "MEDIUM",
-          "status": "INFO",
-          "recommendedAction": "No action required"
-        },
-        {
           "timestamp": "2023-05-17T10:08:22",
           "source_ip": "192.168.1.15",
-          "type": "normal",
+          "type": "attack",
           "sensitivity": "HIGH",
-          "status": "INFO",
-          "recommendedAction": "No action required"
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
         },
         {
           "timestamp": "2023-05-17T10:09:40",
           "source_ip": "192.168.1.10",
-          "type": "anomaly",
-          "sensitivity": "MEDIUM",
-          "status": "ALERT",
-          "recommendedAction": "Review unusual behavior and investigate further"
-        },
-        {
-          "timestamp": "2023-05-17T10:10:51",
-          "source_ip": "192.168.1.25",
           "type": "normal",
           "sensitivity": "HIGH",
           "status": "INFO",
           "recommendedAction": "No action required"
         },
         {
-          "timestamp": "2023-05-17T10:12:05",
+          "timestamp": "2023-05-17T10:10:51",
           "source_ip": "192.168.1.25",
           "type": "anomaly",
           "sensitivity": "HIGH",
           "status": "ALERT",
           "recommendedAction": "Review unusual behavior and investigate further"
+        },
+        {
+          "timestamp": "2023-05-17T10:12:05",
+          "source_ip": "192.168.1.25",
+          "type": "normal",
+          "sensitivity": "MEDIUM",
+          "status": "INFO",
+          "recommendedAction": "No action required"
         },
         {
           "timestamp": "2023-05-17T10:15:10",
@@ -123,7 +123,7 @@
           "timestamp": "2023-05-17T10:16:33",
           "source_ip": "192.168.1.200",
           "type": "normal",
-          "sensitivity": "MEDIUM",
+          "sensitivity": "HIGH",
           "status": "INFO",
           "recommendedAction": "No action required"
         },
@@ -138,42 +138,42 @@
         {
           "timestamp": "2023-05-17T10:20:01",
           "source_ip": "192.168.1.10",
-          "type": "probe",
-          "sensitivity": "MEDIUM",
-          "status": "INFO",
-          "recommendedAction": "Block source IP and investigate"
+          "type": "attack",
+          "sensitivity": "HIGH",
+          "status": "ALERT",
+          "recommendedAction": "Immediately isolate affected systems and investigate"
         },
         {
           "timestamp": "2023-05-17T10:21:15",
           "source_ip": "192.168.1.15",
           "type": "normal",
-          "sensitivity": "MEDIUM",
+          "sensitivity": "HIGH",
           "status": "INFO",
           "recommendedAction": "No action required"
         },
         {
           "timestamp": "2023-05-17T10:22:30",
           "source_ip": "192.168.1.15",
-          "type": "probe",
+          "type": "normal",
           "sensitivity": "HIGH",
           "status": "INFO",
-          "recommendedAction": "Block source IP and investigate"
+          "recommendedAction": "No action required"
         },
         {
           "timestamp": "2023-05-17T10:25:45",
           "source_ip": "192.168.1.50",
-          "type": "attack",
+          "type": "normal",
           "sensitivity": "HIGH",
-          "status": "ALERT",
-          "recommendedAction": "Immediately isolate affected systems and investigate"
+          "status": "INFO",
+          "recommendedAction": "No action required"
         },
         {
           "timestamp": "2023-05-17T10:26:10",
           "source_ip": "192.168.1.50",
-          "type": "attack",
+          "type": "normal",
           "sensitivity": "MEDIUM",
-          "status": "ALERT",
-          "recommendedAction": "Immediately isolate affected systems and investigate"
+          "status": "INFO",
+          "recommendedAction": "No action required"
         }
       ],
       "port_analysis": {
@@ -186,7 +186,7 @@
         "1433": 3,
         "-1": 2
       },
-      "text_summary": "Analysis of 20 log entries shows the security status is critical. Breakdown by category: normal: 9 entries (45.0%), probe: 5 entries (25.0%), attack: 4 entries (20.0%), anomaly: 2 entries (10.0%). Risk levels: 7 high, 13 medium, and 0 low risk entries.",
+      "text_summary": "Analysis of 20 log entries shows the security status is critical. Breakdown by category: normal: 12 entries (60.0%), attack: 5 entries (25.0%), probe: 2 entries (10.0%), anomaly: 1 entries (5.0%). Risk levels: 14 high, 6 medium, and 0 low risk entries.",
       "recommended_actions": [
         "Immediately investigate attack incidents and consider isolating affected systems",
         "Monitor for further suspicious activity from identified source IPs",
@@ -195,5 +195,5 @@
       ]
     }
   ],
-  "timestamp": "2025-05-18T07:45:54.060815"
+  "timestamp": "2025-05-17T17:37:17.139694"
 }

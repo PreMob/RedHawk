@@ -106,15 +106,18 @@ const mapLogEntryToThreat = (logEntry: LogEntry): Threat => {
   // Format the timestamp to match the UI format
   const timestamp = new Date(logEntry.timestamp).toISOString().replace("T", " ").substring(0, 19);
   
+  // Ensure sourceIp exists or use a default
+  const sourceIp = logEntry.sourceIp || "192.168.1.1";
+  
   return {
     id,
     timestamp,
-    sourceIp: logEntry.sourceIp,
+    sourceIp,
     destinationIp: "10.0.0.1", // Default destination as it's not provided in the log
     type: logEntry.type.charAt(0).toUpperCase() + logEntry.type.slice(1), // Capitalize type
     severity,
     status,
-    description: logEntry.recommendedAction || `${logEntry.type} activity detected from ${logEntry.sourceIp}`,
+    description: logEntry.recommendedAction || `${logEntry.type} activity detected from ${sourceIp}`,
   };
 };
 
@@ -129,14 +132,23 @@ export function useLogAnalysis() {
     setError(null);
     
     try {
+      console.log('Fetching log analyses list...');
       // First, fetch list of analyses
-      const listResponse = await fetch('/api/analyses');
+      const listResponse = await fetch('/api/analyses', {
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      console.log('List response status:', listResponse.status);
       
       if (!listResponse.ok) {
         throw new Error(`Error fetching log analyses: ${listResponse.statusText}`);
       }
       
       const listData: BackendAnalysisListResponse = await listResponse.json();
+      console.log('Analyses data received:', listData);
       
       if (!listData.analyses || listData.analyses.length === 0) {
         setError('No log analyses available');
@@ -146,15 +158,24 @@ export function useLogAnalysis() {
       
       // Get the most recent analysis ID
       const mostRecentAnalysisId = listData.analyses[0]._id;
+      console.log('Fetching details for analysis ID:', mostRecentAnalysisId);
       
       // Fetch detailed analysis data
-      const detailResponse = await fetch(`/api/analyses/${mostRecentAnalysisId}`);
+      const detailResponse = await fetch(`/api/analyses/${mostRecentAnalysisId}`, {
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      console.log('Detail response status:', detailResponse.status);
       
       if (!detailResponse.ok) {
         throw new Error(`Error fetching log analysis details: ${detailResponse.statusText}`);
       }
       
       const detailData: BackendAnalysisDetailResponse = await detailResponse.json();
+      console.log('Detail data received:', detailData);
       
       // Extract and update the summary
       const analysisData = detailData.analysis;
@@ -170,11 +191,17 @@ export function useLogAnalysis() {
       setSummary(summaryData);
       
       // Convert log entries to threats
-      const newThreats = analysisData.logEntries?.map(mapLogEntryToThreat) || [];
+      const newThreats = analysisData.logEntries?.map(entry => {
+        console.log('Processing log entry:', entry);
+        return mapLogEntryToThreat(entry);
+      }) || [];
+      
+      console.log('Setting threats:', newThreats.length);
       setThreats(newThreats);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-      console.error('Error fetching log analysis:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Error fetching log analysis:', errorMessage, err);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -186,7 +213,7 @@ export function useLogAnalysis() {
   }, []);
 
   return {
-    threats,
+    threats: threats || [],
     summary,
     loading,
     error,

@@ -5,6 +5,11 @@ const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
 
+// Model imports
+require('./models/LogAnalysis');
+require('./models/ChatConversation');
+require('./models/ScanResult');
+
 // Route imports
 const logRoutes = require('./routes/logRoutes');
 const chatRoutes = require('./routes/chatRoutes');

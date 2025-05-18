@@ -35,9 +35,11 @@ interface ThreatTableProps {
   threats: Threat[]
   className?: string
   onViewDetails?: (threat: Threat) => void
+  loading?: boolean
+  error?: string | null
 }
 
-export function ThreatTable({ threats, className, onViewDetails }: ThreatTableProps) {
+export function ThreatTable({ threats, className, onViewDetails, loading = false, error = null }: ThreatTableProps) {
   const [sortField, setSortField] = useState<keyof Threat>("timestamp")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [searchQuery, setSearchQuery] = useState("")
@@ -248,147 +250,164 @@ export function ThreatTable({ threats, className, onViewDetails }: ThreatTablePr
             </div>
           </CardHeader>
           <CardContent className="px-0 pb-0">
-            <div className="max-h-[400px] overflow-auto">
-              <table className="w-full">
-                <thead className="sticky top-0 bg-black">
-                <tr className="border-b border-red-900/30">
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    <button className="flex items-center focus:outline-none" onClick={() => handleSort("timestamp")}>
-                      Timestamp
-                      {sortField === "timestamp" ? (
-                          sortDirection === "asc" ? (
-                              <ChevronUp className="ml-1 h-4 w-4" />
-                          ) : (
-                              <ChevronDown className="ml-1 h-4 w-4" />
-                          )
-                      ) : (
-                          <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    <button className="flex items-center focus:outline-none" onClick={() => handleSort("sourceIp")}>
-                      Source IP
-                      {sortField === "sourceIp" ? (
-                          sortDirection === "asc" ? (
-                              <ChevronUp className="ml-1 h-4 w-4" />
-                          ) : (
-                              <ChevronDown className="ml-1 h-4 w-4" />
-                          )
-                      ) : (
-                          <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    <button className="flex items-center focus:outline-none" onClick={() => handleSort("type")}>
-                      Type
-                      {sortField === "type" ? (
-                          sortDirection === "asc" ? (
-                              <ChevronUp className="ml-1 h-4 w-4" />
-                          ) : (
-                              <ChevronDown className="ml-1 h-4 w-4" />
-                          )
-                      ) : (
-                          <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    <button className="flex items-center focus:outline-none" onClick={() => handleSort("severity")}>
-                      Severity
-                      {sortField === "severity" ? (
-                          sortDirection === "asc" ? (
-                              <ChevronUp className="ml-1 h-4 w-4" />
-                          ) : (
-                              <ChevronDown className="ml-1 h-4 w-4" />
-                          )
-                      ) : (
-                          <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    <button className="flex items-center focus:outline-none" onClick={() => handleSort("status")}>
-                      Status
-                      {sortField === "status" ? (
-                          sortDirection === "asc" ? (
-                              <ChevronUp className="ml-1 h-4 w-4" />
-                          ) : (
-                              <ChevronDown className="ml-1 h-4 w-4" />
-                          )
-                      ) : (
-                          <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-                </thead>
-                <tbody className="divide-y divide-red-900/20 bg-black">
-                {sortedThreats.length > 0 ? (
-                    sortedThreats.map((threat) => (
-                        <tr key={threat.id} className="hover:bg-red-950/10">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{threat.timestamp}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{threat.sourceIp}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{threat.type}</td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              {getSeverityIcon(threat.severity)}
-                              <span className="ml-2">{getSeverityBadge(threat.severity)}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(threat.status)}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex justify-end">
-                              <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-gray-400 hover:bg-red-950 hover:text-white"
-                                  onClick={() => handleViewDetails(threat)}
-                              >
-                                <Eye className="h-4 w-4" />
-                                <span className="sr-only">View details</span>
-                              </Button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-8 w-8 text-gray-400 hover:bg-red-950 hover:text-white"
-                                  >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Open menu</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-black border-red-900/30">
-                                  <DropdownMenuItem className="text-gray-400 focus:bg-red-950 focus:text-white">
-                                    Mark as Mitigated
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem className="text-gray-400 focus:bg-red-950 focus:text-white">
-                                    Investigate
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem className="text-red-500 focus:bg-red-950 focus:text-white">
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </td>
-                        </tr>
-                    ))
-                ) : (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
-                        No threats found
-                      </td>
-                    </tr>
-                )}
-                </tbody>
-              </table>
-            </div>
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="h-6 w-6 animate-spin rounded-full border-b-2 border-red-500"></div>
+                <span className="ml-2 text-gray-400">Loading threat data...</span>
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center p-8 text-red-500">
+                <AlertCircle className="mr-2 h-5 w-5" />
+                <span>{error}</span>
+              </div>
+            ) : sortedThreats.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 text-gray-400">
+                <Shield className="mb-2 h-10 w-10 text-gray-600" />
+                <p className="text-center">No threats matching your criteria</p>
+              </div>
+            ) : (
+              <div className="max-h-[400px] overflow-auto">
+                <table className="w-full">
+                  <thead className="sticky top-0 bg-black">
+                  <tr className="border-b border-red-900/30">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      <button className="flex items-center focus:outline-none" onClick={() => handleSort("timestamp")}>
+                        Timestamp
+                        {sortField === "timestamp" ? (
+                            sortDirection === "asc" ? (
+                                <ChevronUp className="ml-1 h-4 w-4" />
+                            ) : (
+                                <ChevronDown className="ml-1 h-4 w-4" />
+                            )
+                        ) : (
+                            <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      <button className="flex items-center focus:outline-none" onClick={() => handleSort("sourceIp")}>
+                        Source IP
+                        {sortField === "sourceIp" ? (
+                            sortDirection === "asc" ? (
+                                <ChevronUp className="ml-1 h-4 w-4" />
+                            ) : (
+                                <ChevronDown className="ml-1 h-4 w-4" />
+                            )
+                        ) : (
+                            <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      <button className="flex items-center focus:outline-none" onClick={() => handleSort("type")}>
+                        Type
+                        {sortField === "type" ? (
+                            sortDirection === "asc" ? (
+                                <ChevronUp className="ml-1 h-4 w-4" />
+                            ) : (
+                                <ChevronDown className="ml-1 h-4 w-4" />
+                            )
+                        ) : (
+                            <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      <button className="flex items-center focus:outline-none" onClick={() => handleSort("severity")}>
+                        Severity
+                        {sortField === "severity" ? (
+                            sortDirection === "asc" ? (
+                                <ChevronUp className="ml-1 h-4 w-4" />
+                            ) : (
+                                <ChevronDown className="ml-1 h-4 w-4" />
+                            )
+                        ) : (
+                            <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      <button className="flex items-center focus:outline-none" onClick={() => handleSort("status")}>
+                        Status
+                        {sortField === "status" ? (
+                            sortDirection === "asc" ? (
+                                <ChevronUp className="ml-1 h-4 w-4" />
+                            ) : (
+                                <ChevronDown className="ml-1 h-4 w-4" />
+                            )
+                        ) : (
+                            <ArrowUpDown className="ml-1 h-4 w-4 opacity-50" />
+                        )}
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                  </thead>
+                  <tbody className="divide-y divide-red-900/20 bg-black">
+                  {sortedThreats.length > 0 ? (
+                      sortedThreats.map((threat) => (
+                          <tr key={threat.id} className="hover:bg-red-950/10">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{threat.timestamp}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{threat.sourceIp}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{threat.type}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                {getSeverityIcon(threat.severity)}
+                                <span className="ml-2">{getSeverityBadge(threat.severity)}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(threat.status)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              <div className="flex justify-end">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-gray-400 hover:bg-red-950 hover:text-white"
+                                    onClick={() => handleViewDetails(threat)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  <span className="sr-only">View details</span>
+                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-gray-400 hover:bg-red-950 hover:text-white"
+                                    >
+                                      <MoreHorizontal className="h-4 w-4" />
+                                      <span className="sr-only">Open menu</span>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="bg-black border-red-900/30">
+                                    <DropdownMenuItem className="text-gray-400 focus:bg-red-950 focus:text-white">
+                                      Mark as Mitigated
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="text-gray-400 focus:bg-red-950 focus:text-white">
+                                      Investigate
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="text-red-500 focus:bg-red-950 focus:text-white">
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </td>
+                          </tr>
+                      ))
+                  ) : (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                          No threats found
+                        </td>
+                      </tr>
+                  )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
 

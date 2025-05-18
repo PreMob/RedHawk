@@ -9,31 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Download, ZoomIn, ZoomOut } from "lucide-react"
 import { format, subDays } from "date-fns"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, type TooltipProps, XAxis, YAxis } from "recharts"
-
-// Generate mock data for anomalies over time
-const generateAnomalyData = (days: number) => {
-    const data = []
-    const now = new Date()
-
-    for (let i = days; i >= 0; i--) {
-        const date = subDays(now, i)
-
-        // Create a base value with some randomness
-        let value = Math.floor(Math.random() * 5) + 5
-
-        // Add some spikes for visual interest
-        if (i % 7 === 0) value += Math.floor(Math.random() * 8)
-        if (i % 11 === 0) value += Math.floor(Math.random() * 10)
-
-        data.push({
-            date: format(date, "MMM dd"),
-            value,
-            timestamp: date.getTime(),
-        })
-    }
-
-    return data
-}
+import { useLogAnalysis } from "@/hooks/use-log-analysis"
 
 // Custom tooltip component
 const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
@@ -55,16 +31,92 @@ export function AnomaliesAreaChart() {
     const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d">("30d")
     const [date, setDate] = useState<Date | undefined>(new Date())
     const [zoomLevel, setZoomLevel] = useState(1)
+    const { summary, threats, loading, error } = useLogAnalysis();
 
-    // Generate data based on selected time range
-    const data = generateAnomalyData(timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90)
+    // Generate data based on real threats data or fallback to generated data
+    const generateChartData = () => {
+        if (!threats?.length) {
+            // Fallback to generated mock data
+            return generateMockData(timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90);
+        }
+        
+        // Group threats by day
+        const days = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
+        const anomalyData = [];
+        const now = new Date();
+        
+        // Initialize data structure for all days
+        for (let i = days; i >= 0; i--) {
+            const date = subDays(now, i);
+            anomalyData.push({
+                date: format(date, "MMM dd"),
+                value: 0,
+                timestamp: date.getTime()
+            });
+        }
+        
+        // Count anomalies by day
+        threats.forEach(threat => {
+            if (threat.timestamp) {
+                const threatDate = new Date(threat.timestamp);
+                const formattedDate = format(threatDate, "MMM dd");
+                
+                // Find matching day in our data
+                const dataPoint = anomalyData.find(d => d.date === formattedDate);
+                if (dataPoint) {
+                    // Count severity critical and high as anomalies
+                    if (threat.severity === 'critical' || threat.severity === 'high') {
+                        dataPoint.value += 1;
+                    }
+                }
+            }
+        });
+        
+        return anomalyData;
+    };
+    
+    // Fallback function to generate mock data
+    const generateMockData = (days: number) => {
+        const data = [];
+        const now = new Date();
 
+        for (let i = days; i >= 0; i--) {
+            const date = subDays(now, i);
+
+            // Create a base value with some randomness
+            let value = Math.floor(Math.random() * 5) + 5;
+
+            // Add some spikes for visual interest
+            if (i % 7 === 0) value += Math.floor(Math.random() * 8);
+            if (i % 11 === 0) value += Math.floor(Math.random() * 10);
+
+            data.push({
+                date: format(date, "MMM dd"),
+                value,
+                timestamp: date.getTime(),
+            });
+        }
+
+        return data;
+    };
+
+    // Get the chart data
+    const data = generateChartData();
+    
     const handleZoomIn = () => {
         setZoomLevel(Math.min(zoomLevel + 0.2, 2))
     }
 
     const handleZoomOut = () => {
         setZoomLevel(Math.max(zoomLevel - 0.2, 0.5))
+    }
+    
+    if (loading) {
+        return <div className="h-[300px] w-full flex items-center justify-center text-gray-400">Loading anomaly data...</div>;
+    }
+
+    if (error) {
+        return <div className="h-[300px] w-full flex items-center justify-center text-red-500">Error loading anomaly data</div>;
     }
 
     return (
@@ -89,40 +141,48 @@ export function AnomaliesAreaChart() {
                     </TabsList>
                 </Tabs>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className="border-red-900/30 bg-black text-gray-400 hover:bg-red-950 hover:text-white"
+                                className="h-8 border-red-900/30 bg-black text-gray-400 hover:bg-red-950 hover:text-white"
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {date ? format(date, "PPP") : "Pick a date"}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-black border-red-900/30">
-                            <Calendar mode="single" selected={date} onSelect={setDate} initialFocus className="bg-black text-white" />
+                        <PopoverContent className="w-auto p-0 bg-black border-red-900/30" align="end">
+                            <Calendar
+                                mode="single"
+                                initialFocus
+                                selected={date}
+                                onSelect={setDate}
+                                className="border-red-900/30 bg-black"
+                                classNames={{
+                                    day_selected: "bg-red-950 text-white",
+                                    day_today: "bg-neutral-800 text-white",
+                                }}
+                            />
                         </PopoverContent>
                     </Popover>
 
-                    <div className="flex items-center gap-1">
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 border-red-900/30 bg-black text-gray-400 hover:bg-red-950 hover:text-white"
-                            onClick={handleZoomOut}
-                        >
-                            <ZoomOut className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 border-red-900/30 bg-black text-gray-400 hover:bg-red-950 hover:text-white"
-                            onClick={handleZoomIn}
-                        >
-                            <ZoomIn className="h-4 w-4" />
-                        </Button>
-                    </div>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 border-red-900/30 bg-black text-gray-400 hover:bg-red-950 hover:text-white"
+                        onClick={handleZoomIn}
+                    >
+                        <ZoomIn className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 border-red-900/30 bg-black text-gray-400 hover:bg-red-950 hover:text-white"
+                        onClick={handleZoomOut}
+                    >
+                        <ZoomOut className="h-4 w-4" />
+                    </Button>
 
                     <Button
                         variant="outline"
@@ -166,10 +226,9 @@ export function AnomaliesAreaChart() {
                             type="monotone"
                             dataKey="value"
                             stroke="#ef4444"
-                            strokeWidth={2}
                             fillOpacity={1}
                             fill="url(#colorValue)"
-                            activeDot={{ r: 6, fill: "#ef4444", stroke: "#fff" }}
+                            animationDuration={1500}
                         />
                     </AreaChart>
                 </ResponsiveContainer>
