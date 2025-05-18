@@ -1,4 +1,5 @@
-import requests, re, json, os, argparse, sys
+import requests, re, json, os, argparse, sys, ssl, socket
+from urllib.parse import urlparse
 try:
     import openai
 except ImportError:
@@ -13,35 +14,112 @@ def is_outdated_version(name, version_str):
     """Naive version check for demo."""
     if not version_str:
         return False
-    parts = [int(p) for p in version_str.split('.')]
-    if name == "Apache":
-        # consider Apache 2.4.50+ as current (example threshold)
-        if parts[0] == 2 and parts[1] == 4 and (parts[2] if len(parts)>2 else 0) < 50:
-            return True
-    if name == "nginx":
-        # consider nginx 1.18+ as current
-        if parts[0] == 1 and parts[1] < 18:
-            return True
-    if name == "PHP":
-        # consider PHP 7.4+ as current (example threshold)
-        if parts[0] == 7 and parts[1] < 4:
-            return True
-        if parts[0] < 7:
-            return True
-    return False
+    try:
+        parts = [int(p) for p in version_str.split('.')]
+        if name == "Apache":
+            # consider Apache 2.4.50+ as current (example threshold)
+            if parts[0] == 2 and parts[1] == 4 and (parts[2] if len(parts)>2 else 0) < 50:
+                return True
+        if name == "nginx":
+            # consider nginx 1.18+ as current
+            if parts[0] == 1 and parts[1] < 18:
+                return True
+        if name == "PHP":
+            # consider PHP 7.4+ as current (example threshold)
+            if parts[0] == 7 and parts[1] < 4:
+                return True
+            if parts[0] < 7:
+                return True
+        return False
+    except (ValueError, IndexError):
+        return False
+
+def check_ssl(url):
+    """Check SSL certificate details and security"""
+    result = {
+        "valid": False,
+        "issues": [],
+        "certificate": {}
+    }
+    
+    parsed_url = urlparse(url)
+    if parsed_url.scheme != 'https':
+        result["issues"].append("Not using HTTPS")
+        return result
+    
+    hostname = parsed_url.netloc.split(':')[0]
+    try:
+        context = ssl.create_default_context()
+        with socket.create_connection((hostname, 443), timeout=5) as sock:
+            with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+                cert = ssock.getpeercert()
+                result["valid"] = True
+                result["certificate"] = {
+                    "issuer": dict(x[0] for x in cert["issuer"]),
+                    "subject": dict(x[0] for x in cert["subject"]),
+                    "notBefore": cert["notBefore"],
+                    "notAfter": cert["notAfter"]
+                }
+    except ssl.SSLError as e:
+        result["issues"].append(f"SSL Error: {str(e)}")
+    except (socket.gaierror, socket.timeout, ConnectionRefusedError) as e:
+        result["issues"].append(f"Connection error: {str(e)}")
+    except Exception as e:
+        result["issues"].append(f"Error checking SSL: {str(e)}")
+    
+    return result
 
 def scan_website(url):
-    results = {"headers": {}, "technologies": [], "outdated": [], "vuln_tests": {}, "errors": []}
+    results = {
+        "headers": {}, 
+        "technologies": [], 
+        "outdated": [], 
+        "vuln_tests": {}, 
+        "security_headers": {},
+        "ssl_info": {},
+        "errors": []
+    }
+    
+    # Check if URL is properly formatted
+    if not url.startswith(('http://', 'https://')):
+        results["errors"].append("Invalid URL format. URL must start with http:// or https://")
+        return results
+    
+    # Check SSL if using HTTPS
+    if url.startswith('https://'):
+        results["ssl_info"] = check_ssl(url)
+    else:
+        results["ssl_info"] = {"valid": False, "issues": ["Not using HTTPS"]}
     
     # Send GET to grab headers (banner grabbing)
     try:
-        resp = requests.get(url, timeout=5)
-        headers = resp.headers
-        results["headers"] = dict(headers)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5"
+        }
+        resp = requests.get(url, timeout=8, headers=headers, allow_redirects=True)
+        results["headers"] = dict(resp.headers)
+
+        # Check important security headers
+        security_headers = {
+            "Content-Security-Policy": resp.headers.get("Content-Security-Policy"),
+            "Strict-Transport-Security": resp.headers.get("Strict-Transport-Security"),
+            "X-Content-Type-Options": resp.headers.get("X-Content-Type-Options"),
+            "X-Frame-Options": resp.headers.get("X-Frame-Options"),
+            "X-XSS-Protection": resp.headers.get("X-XSS-Protection"),
+            "Referrer-Policy": resp.headers.get("Referrer-Policy")
+        }
+        results["security_headers"] = {k: v for k, v in security_headers.items() if v is not None}
+        
+        # Missing security headers
+        missing_headers = [k for k, v in security_headers.items() if v is None]
+        if missing_headers:
+            results["missing_security_headers"] = missing_headers
 
         # Identify server/framework from headers
-        server = headers.get("Server")
-        xpb = headers.get("X-Powered-By")
+        server = resp.headers.get("Server")
+        xpb = resp.headers.get("X-Powered-By")
         if server:
             results["technologies"].append(server)
             ver = parse_version(server)
@@ -60,7 +138,7 @@ def scan_website(url):
         payloads = {"true": "' OR '1'='1", "false": "' OR '1'='2"}
         for name, payload in payloads.items():
             try:
-                r = requests.get(url, params={"id": payload}, timeout=5)
+                r = requests.get(url, params={"id": payload}, timeout=5, headers=headers)
                 vuln_sql.append({"test": name, "length": len(r.text or "")})
             except Exception as e:
                 results["errors"].append(f"Error testing SQL injection with payload '{name}': {str(e)}")
@@ -78,7 +156,7 @@ def scan_website(url):
         xss_results = []
         for payload in xss_payloads:
             try:
-                r = requests.get(url, params={"id": payload}, timeout=5)
+                r = requests.get(url, params={"id": payload}, timeout=5, headers=headers)
                 reflected = payload in (r.text or "")
                 xss_results.append({"payload": payload, "reflected": reflected})
             except Exception as e:
@@ -91,6 +169,8 @@ def scan_website(url):
         results["errors"].append(f"Connection error: {str(e)}")
     except requests.exceptions.Timeout as e:
         results["errors"].append(f"Timeout error: {str(e)}")
+    except requests.exceptions.TooManyRedirects as e:
+        results["errors"].append(f"Too many redirects: {str(e)}")
     except requests.exceptions.RequestException as e:
         results["errors"].append(f"Request error: {str(e)}")
     except Exception as e:

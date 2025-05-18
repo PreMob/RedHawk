@@ -9,6 +9,8 @@ import { VulnerabilityBarChart } from "./_components/vurnability-bar-chart"
 import { RiskDonutChart } from "./_components/risk-donut-chart"
 import { StatsCard } from "./_components/stats-card"
 import { useLogAnalysis } from "@/hooks/use-log-analysis"
+import { Globe } from "lucide-react"
+import Link from "next/link"
 
 export default function DashboardPage() {
     // Use the real data from the API instead of mock data
@@ -132,6 +134,25 @@ export default function DashboardPage() {
                         <ThreatTable threats={threats || []} loading={loading} error={error} />
                     </CardContent>
                 </Card>
+
+                {/* Additional Tools Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+                    <Link href="/dashboard/url-scan">
+                        <Card className="border-red-900/30 bg-black hover:bg-red-950/20 transition-colors cursor-pointer">
+                            <CardHeader>
+                                <CardTitle className="text-lg font-semibold text-white flex items-center">
+                                    <Globe className="h-5 w-5 mr-2 text-red-500" />
+                                    URL Security Scanner
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-gray-400">Scan websites for vulnerabilities, outdated software, and security issues.</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    
+                    {/* Add more tool cards here */}
+                </div>
             </div>
         </DashboardLayout>
     )

@@ -57,8 +57,22 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+    }
   }, [messages])
+
+  // Add scroll to bottom function
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  // Scroll to bottom when typing starts
+  useEffect(() => {
+    if (isTyping) {
+      scrollToBottom()
+    }
+  }, [isTyping])
 
   // Send message to the backend API
   const sendMessageToApi = async (message: string) => {
@@ -229,8 +243,9 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
   return (
     <Card
       className={cn(
-        "border-red-900/30 bg-black flex flex-col fixed bottom-0 right-4 z-50 shadow-lg transition-all duration-200",
+        "border-red-900/30 bg-black flex flex-col fixed bottom-4 right-4 z-50 shadow-lg transition-all duration-200 max-h-[calc(100vh-2rem)] overflow-hidden",
         isExpanded ? "w-[600px] h-[600px]" : "w-[350px] h-[450px]",
+        !isOpen && "hidden",
         className,
       )}
     >
@@ -264,8 +279,8 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="p-0 flex-1 flex flex-col">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-red-900/30 scrollbar-track-transparent">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -282,7 +297,7 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
                 </Avatar>
               )}
               <div className={cn(
-                "max-w-[75%] overflow-hidden",
+                "max-w-[75%] overflow-hidden break-words",
                 message.sender === "system" && "max-w-full w-full"
               )}>
                 {message.sender === "system" ? (
@@ -297,7 +312,7 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
                     )}
                   >
                     <div className="space-y-2">
-                      <div className="break-words">{message.content}</div>
+                      <div className="break-words whitespace-pre-wrap">{message.content}</div>
 
                       <div className="flex items-center justify-end gap-2">
                         {message.isEncrypted && (
@@ -365,7 +380,7 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
           )}
           <div ref={messagesEndRef} />
         </div>
-        <div className="p-4 border-t border-red-900/30">
+        <div className="p-4 border-t border-red-900/30 flex-shrink-0">
           <div className="flex gap-2">
             <Button
               variant="outline"

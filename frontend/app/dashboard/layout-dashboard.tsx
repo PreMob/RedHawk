@@ -37,6 +37,7 @@ import {
     Eye,
     AlertCircle,
     BotMessageSquare,
+    Globe,
 } from "lucide-react"
 import { FileUpload } from "@/components/file-upload"
 import { ThreatTable, type Threat } from "@/app/dashboard/_components/threat-table"
@@ -155,6 +156,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                                             <SidebarMenuButton isActive={pathname === '/users'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
                                                 <Users className="text-red-500" />
                                                 <span>Users</span>
+                                            </SidebarMenuButton>
+                                        </Link>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <Link href="/dashboard/url-scan" className="w-full">
+                                            <SidebarMenuButton isActive={pathname === '/dashboard/url-scan'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
+                                                <Globe className="text-red-500" />
+                                                <span>URL Scan</span>
                                             </SidebarMenuButton>
                                         </Link>
                                     </SidebarMenuItem>
