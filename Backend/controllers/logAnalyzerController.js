@@ -120,7 +120,7 @@ exports.analyzeLog = async (req, res) => {
     
     // Run Python analysis script
     console.log('Running Python script:', path.join(__dirname, '../run_analysis.py'));
-    const pythonProcess = spawn('python3', [
+    const pythonProcess = spawn('python', [
       path.join(__dirname, '../run_analysis.py'),
       '--log-file', targetFilePath,
       '--summary-file', path.join(uploadDir, 'clean_summary.json')
