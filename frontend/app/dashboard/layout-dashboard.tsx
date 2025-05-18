@@ -44,7 +44,8 @@ import { AttackGraph } from "@/app/dashboard/_components/attack-graph"
 import { SummaryPanel } from "@/app/dashboard/_components/summary-panel"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { mockThreats, mockNodes, mockLinks, mockSummaryData } from "@/lib/mock-data"
+import { mockNodes, mockLinks } from "@/lib/mock-data"
+import { useLogAnalysis } from "@/hooks/use-log-analysis"
 
 
 interface DashboardLayoutProps {
@@ -53,42 +54,14 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
     const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null)
-    const [threats, setThreats] = useState<Threat[]>(mockThreats)
+    const { threats, summary, loading, error, refetch } = useLogAnalysis()
     const [isChatOpen, setIsChatOpen] = useState(false)
     const [unreadMessages, setUnreadMessages] = useState(2)
 
-    const handleFileUpload = (data: any[]) => {
+    const handleFileUpload = async (data: any[]) => {
         console.log("File uploaded:", data)
-        // In a real app, we would process the data and update the state
-        // For now, we'll just add a notification or something
-
-        // Simulate adding new threats after a delay
-        setTimeout(() => {
-            const newThreats = [
-                {
-                    id: `threat-${Date.now()}`,
-                    timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-                    sourceIp: data[0]?.ip || "192.168.1.254",
-                    destinationIp: "10.0.0.15",
-                    type: "Suspicious Login Attempt",
-                    severity: "high" as const,
-                    status: "active" as const,
-                    description: "Multiple failed login attempts detected from unknown source",
-                },
-                {
-                    id: `threat-${Date.now() + 1}`,
-                    timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-                    sourceIp: data[0]?.ip || "192.168.1.253",
-                    destinationIp: "10.0.0.16",
-                    type: "Port Scanning",
-                    severity: "medium" as const,
-                    status: "active" as const,
-                    description: "Sequential port scanning detected from external IP",
-                },
-            ]
-
-            setThreats((prev) => [...newThreats, ...prev])
-        }, 2000)
+        // After file upload, refetch the log analysis
+        await refetch()
     }
 
     const toggleChat = () => {
@@ -100,12 +73,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
     return (
         <SidebarProvider>
-            <div className="flex h-screen bg-black">
+            <div className="flex h-screen w-full bg-black">
                 <Sidebar className="border-r border-red-900/30 bg-black">
                     <SidebarHeader>
                         <div className="flex items-center gap-2 px-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-red-950">
-                              <Image src="/logo.png" alt="Logo" width={32} height={32} className="rounded-lg" />
+                                <Image src="/logo.png" alt="Logo" width={32} height={32} className="rounded-lg" />
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-semibold text-white">RedHawk</span>
@@ -203,7 +176,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
                 <div className="flex flex-1 flex-col overflow-hidden">
                     {/* Header */}
-                    <header className="border-b border-red-900/30 bg-black px-4 py-2">
+                    <header className="border-b border-red-900/30 bg-black px-4 py-2 sticky top-0 z-40">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center">
                                 <SidebarTrigger className="mr-2 text-gray-400 hover:bg-red-950 hover:text-white" />
@@ -234,14 +207,58 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     {/* Main content */}
                     <main className="flex-1 overflow-auto bg-gradient-to-b from-black to-red-950/10 p-4">
                         {children || (
-                            <div className="mx-auto max-w-7xl space-y-4">
+                            <div className="w-full space-y-4">
                                 {/* Summary Panel */}
-                                <SummaryPanel data={mockSummaryData} />
+                                {loading ? (
+                                    <div className="w-full h-48 flex items-center justify-center">
+                                        <div className="animate-pulse text-red-500">Loading log analysis data...</div>
+                                    </div>
+                                ) : error ? (
+                                    <div className="w-full p-4 bg-red-950/20 border border-red-900/30 rounded-lg text-red-500">
+                                        Error loading log analysis data: {error}
+                                    </div>
+                                ) : summary ? (
+                                    <SummaryPanel
+                                        data={{
+                                            totalThreats: summary.totalRecords,
+                                            criticalThreats: summary.predictionCounts.attack + summary.predictionCounts.anomaly,
+                                            mitigatedThreats: summary.predictionCounts.normal,
+                                            threatTrend: "stable" as const,
+                                            trendPercentage: 0,
+                                            lastUpdated: new Date().toLocaleString(),
+                                            topAttackers: [
+                                                { ip: "192.168.1.201", count: summary.predictionCounts.probe, country: "Unknown" },
+                                                { ip: "192.168.1.202", count: summary.predictionCounts.attack, country: "Unknown" },
+                                                { ip: "192.168.1.203", count: summary.predictionCounts.anomaly, country: "Unknown" }
+                                            ],
+                                            vulnerableServices: [
+                                                { name: "Web Server", count: summary.predictionCounts.attack, risk: "critical" as const },
+                                                { name: "Database", count: summary.predictionCounts.probe, risk: "high" as const },
+                                                { name: "File Server", count: summary.predictionCounts.anomaly, risk: "medium" as const }
+                                            ]
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="w-full p-4 bg-red-950/20 border border-red-900/30 rounded-lg text-white">
+                                        No log analysis data available. Please upload a log file for analysis.
+                                    </div>
+                                )}
 
                                 {/* File Upload and Attack Graph */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <FileUpload onFileUpload={handleFileUpload} className="md:col-span-1" />
-                                    <AttackGraph nodes={mockNodes} links={mockLinks} className="md:col-span-2" />
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <div className="w-full md:w-[30%] overflow-hidden">
+                                        <FileUpload
+                                            onFileUpload={handleFileUpload}
+                                            className="w-full max-w-full"
+                                        />
+                                    </div>
+                                    <div className="w-full md:w-[70%] overflow-hidden">
+                                        <AttackGraph
+                                            nodes={mockNodes}
+                                            links={mockLinks}
+                                            className="w-full max-w-full"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Threat Table */}

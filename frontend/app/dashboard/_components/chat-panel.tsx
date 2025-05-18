@@ -310,8 +310,10 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
               </div>
               {message.sender === "user" && (
                 <Avatar className="h-8 w-8 mt-1 border border-red-900/50">
-                  <AvatarImage src={`${<UserIcon/>}`} alt="John Doe" />
-                  <AvatarFallback className="bg-gray-800 text-gray-300">JD</AvatarFallback>
+                  <AvatarImage src="/placeholder-user.jpg" alt="John Doe" />
+                  <AvatarFallback className="bg-gray-800 text-gray-300">
+                    <UserIcon className="h-4 w-4" />
+                  </AvatarFallback>
                 </Avatar>
               )}
             </div>

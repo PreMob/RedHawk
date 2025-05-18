@@ -131,10 +131,10 @@ export function FileUpload({ onFileUpload, className }: FileUploadProps) {
 
   return (
     <Card className={cn("border-red-900/30 bg-black", className)}>
-      <CardContent className="p-6">
+      <CardContent className="p-5">
         <div
           className={cn(
-            "relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-red-900/50 p-6 transition-all",
+            "relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-red-900/50 p-3 transition-all",
             isDragging ? "border-red-500 bg-red-950/20" : "hover:border-red-800/70",
             isUploading ? "opacity-80" : "",
           )}
@@ -153,55 +153,54 @@ export function FileUpload({ onFileUpload, className }: FileUploadProps) {
 
           {!isUploading && !uploadSuccess && (
             <>
-              <div className="mb-4 rounded-full bg-red-950/30 p-3">
-                <Upload className="h-6 w-6 text-red-500" />
+              <div className="mb-2 rounded-full bg-red-950/30 p-2">
+                <Upload className="h-4 w-4 text-red-500" />
               </div>
-              <h3 className="mb-1 text-lg font-semibold text-white">Upload Log Files</h3>
-              <p className="mb-4 text-center text-sm text-gray-400">
-                Drag and drop your CSV log files here, or click to browse
+              <h3 className="mb-0.5 text-sm font-semibold text-white">Upload Log Files</h3>
+              <p className="mb-2 text-center text-xs text-gray-400">
+                Drop CSV files or click to browse
               </p>
               <Button
                 variant="outline"
-                className="border-red-900/50 text-red-500 hover:bg-red-950 hover:text-white"
+                size="sm"
+                className="border-red-900/50 text-red-500 hover:bg-red-950 hover:text-white text-xs"
                 onClick={handleButtonClick}
                 disabled={isUploading}
               >
-                <FileText className="mr-2 h-4 w-4" />
-                Browse Files
+                <FileText className="mr-1 h-3 w-3" />
+                Browse
               </Button>
             </>
           )}
 
           {isUploading && (
-            <div className="w-full space-y-4 text-center">
-              <div className="flex items-center justify-center">
-                <FileText className="h-8 w-8 text-red-500 animate-pulse" />
-              </div>
-              <p className="text-sm text-gray-400">Uploading {fileName}...</p>
-              <Progress value={uploadProgress} className="h-2 bg-red-950/30 bg-red-500" />
+            <div className="w-full space-y-2 text-center">
+              <FileText className="h-5 w-5 text-red-500 animate-pulse mx-auto" />
+              <p className="text-xs text-gray-400">Uploading {fileName}...</p>
+              <Progress value={uploadProgress} className="h-1.5 bg-red-950/30 bg-red-500" />
               <p className="text-xs text-gray-500">{uploadProgress}%</p>
             </div>
           )}
 
           {uploadSuccess && !isUploading && (
-            <div className="flex flex-col items-center justify-center space-y-2 text-center">
-              <CheckCircle2 className="h-8 w-8 text-green-500" />
-              <p className="text-sm font-medium text-white">{fileName} uploaded successfully</p>
+            <div className="flex flex-col items-center justify-center space-y-1 text-center">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <p className="text-xs font-medium text-white">{fileName} uploaded successfully</p>
               <p className="text-xs text-gray-400">Log data is being analyzed</p>
               <Button
                 variant="outline"
                 size="sm"
-                className="mt-2 border-red-900/50 text-red-500 hover:bg-red-950 hover:text-white"
+                className="mt-1 border-red-900/50 text-red-500 hover:bg-red-950 hover:text-white text-xs"
                 onClick={handleButtonClick}
               >
-                Upload Another File
+                Upload Another
               </Button>
             </div>
           )}
 
           {uploadError && (
-            <div className="mt-4 flex items-center rounded-md bg-red-950/20 p-2 text-sm text-red-500">
-              <AlertCircle className="mr-2 h-4 w-4" />
+            <div className="mt-2 flex items-center rounded-md bg-red-950/20 p-1.5 text-xs text-red-500">
+              <AlertCircle className="mr-1 h-3 w-3" />
               {uploadError}
             </div>
           )}
