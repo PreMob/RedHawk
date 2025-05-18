@@ -347,8 +347,8 @@ export function ThreatTable({ threats, className, onViewDetails, loading = false
                   </thead>
                   <tbody className="divide-y divide-red-900/20 bg-black">
                   {sortedThreats.length > 0 ? (
-                      sortedThreats.map((threat) => (
-                          <tr key={threat.id} className="hover:bg-red-950/10">
+                      sortedThreats.map((threat, index) => (
+                          <tr key={`${threat.id}-${index}`} className="hover:bg-red-950/10">
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{threat.timestamp}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{threat.sourceIp}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{threat.type}</td>

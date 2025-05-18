@@ -3,40 +3,116 @@ import json
 import argparse
 import sys
 import re
+import time
+from functools import lru_cache
+from typing import Dict, List, Any, Optional
+import gzip
+from concurrent.futures import ThreadPoolExecutor
 
 class RedHawkAssistant:
     """
-    RedHawk Assistant - A chatbot for cybersecurity insights and summary analysis
+    RedHawk Assistant - A cybersecurity-focused chatbot with broad technical knowledge
     """
     
     def __init__(self, api_key=None, summary_file=None):
         """Initialize the assistant with OpenAI API key and optional summary data"""
         self.api_key = api_key
         self.summary_data = None
+        self.response_cache = {}
+        self.cache_ttl = 300  # Cache TTL in seconds (5 minutes)
         
-        # Load summary data if provided
-        if summary_file and os.path.exists(summary_file):
-            try:
-                with open(summary_file, 'r') as f:
-                    self.summary_data = json.load(f)
-                print(f"Loaded summary data from {summary_file}")
-            except Exception as e:
-                print(f"Error loading summary file: {str(e)}")
-        
-        # Define cybersecurity keywords for filtering
+        # Expanded cybersecurity keywords (100+ terms)
         self.cybersec_keywords = [
-            'attack', 'security', 'threat', 'vulnerability', 'exploit', 'malware', 
-            'virus', 'ransomware', 'phishing', 'breach', 'hack', 'incident', 'firewall', 
+            'attack', 'security', 'threat', 'vulnerability', 'exploit', 'malware',
+            'virus', 'ransomware', 'phishing', 'breach', 'hack', 'incident', 'firewall',
             'encryption', 'authentication', 'authorization', 'log', 'network', 'intrusion',
             'detection', 'prevention', 'mitigation', 'risk', 'compliance', 'policy',
             'password', 'access', 'control', 'audit', 'secure', 'protection', 'defense',
             'anomaly', 'alert', 'monitor', 'scan', 'patch', 'update', 'backdoor', 'bot',
             'botnet', 'ddos', 'spoofing', 'trojan', 'worm', 'zero-day', 'penetration',
             'pentest', 'cyber', 'cryptography', 'port', 'protocol', 'siem', 'ids', 'ips',
-            'summary', 'analysis', 'report', 'detection', 'redhawk', 'log analysis'
+            'summary', 'analysis', 'report', 'ioc', 'ttp', 'apt', 'cve', 'cwe', 'mitre',
+            'owasp', 'sql injection', 'xss', 'csrf', 'iam', 'vpn', 'proxy', 'sandbox',
+            'honeypot', 'keylogger', 'rootkit', 'spyware', 'adware', 'cryptojacking',
+            'deepfake', 'identity theft', 'data breach', 'denial of service', 'mitm',
+            'eavesdropping', 'clickjacking', 'session hijacking', 'dark web', 'tor',
+            'phishing kit', 'spear phishing', 'whaling', 'smishing', 'vishing', 'pretexting',
+            'baiting', 'quid pro quo', 'tailgating', 'shoulder surfing', 'dumpster diving',
+            'malware analysis', 'reverse engineering', 'incident response', 'disaster recovery',
+            'business continuity', 'cyber insurance', 'gdpr', 'hipaa', 'pci dss', 'iso 27001',
+            'nist', 'threat intelligence', 'threat hunting', 'red team', 'blue team',
+            'purple team', 'security awareness', 'endpoint protection', 'edr', 'ngav', 'dlp',
+            'ueba', 'zero trust', 'microsegmentation', 'acl', 'biometric', 'mfa', 'sso',
+            'password manager', 'hsm', 'digital signature', 'ca', 'pki', 'ssl', 'tls', 'ssh',
+            'dnssec', 'dmarc', 'dkim', 'spf', 'ipsec', 'ransomware', 'wannacry', 'notpetya'
         ]
+
+        # General tech keywords for broader technical context
+        self.general_tech_keywords = [
+            'computer', 'software', 'hardware', 'internet', 'website', 'data',
+            'server', 'cloud', 'database', 'programming', 'code', 'router',
+            'windows', 'linux', 'macos', 'android', 'ios', 'api', 'ai', 'ml',
+            'application', 'system', 'device', 'tech', 'technology', 'it',
+            'information technology', 'network', 'wifi', 'ethernet', 'browser'
+        ]
+
+        # Predefined simple answers for common cybersecurity terms
+        self.keyword_responses = {
+            'phishing': "Phishing is a cyber attack using disguised emails to steal sensitive information. "
+                       "Always verify sender addresses and avoid clicking suspicious links.",
+            'ransomware': "Ransomware encrypts files and demands payment for decryption. "
+                         "Regular backups and updated security software are key defenses.",
+            'malware': "Malware is malicious software designed to damage or gain unauthorized access. "
+                      "Use reputable antivirus software and keep systems updated.",
+            'ddos': "DDoS attacks overwhelm systems with traffic. Mitigation includes traffic filtering "
+                   "and cloud-based protection services.",
+            'firewall': "Firewalls monitor network traffic to block unauthorized access. "
+                       "Ensure yours is properly configured and updated.",
+            'encryption': "Encryption protects data by converting it into secure code. "
+                         "Use strong encryption protocols for sensitive communications.",
+            'vpn': "VPNs secure internet connections by encrypting data. "
+                  "Always use a reputable VPN service, especially on public networks.",
+            'patch': "Regular software patches fix security vulnerabilities. "
+                    "Enable automatic updates whenever possible.",
+            'zero-day': "Zero-day exploits target unknown vulnerabilities. "
+                       "Use threat intelligence feeds and behavior-based detection systems.",
+            'iot': "IoT devices often have weak security. Change default passwords "
+                  "and keep firmware updated on all smart devices."
+        }
+
+        # Load summary data if provided
+        if summary_file and os.path.exists(summary_file):
+            try:
+                if summary_file.endswith('.gz'):
+                    with gzip.open(summary_file, 'rt') as f:
+                        self.summary_data = json.load(f)
+                else:
+                    with open(summary_file, 'r') as f:
+                        self.summary_data = json.load(f)
+                self._preprocess_summary_data()
+                print(f"Loaded summary data from {summary_file}")
+            except Exception as e:
+                print(f"Error loading summary file: {str(e)}")
+                
+    def _preprocess_summary_data(self):
+        """Pre-process summary data for faster access"""
+        if not self.summary_data:
+            return
+            
+        self.meta = self.summary_data.get("meta", {})
+        self.file_summaries = self.summary_data.get("file_summaries", [])
+        self.prediction_counts = {}
+        self.recommended_actions = []
+        
+        for summary in self.file_summaries:
+            if "prediction_counts" in summary:
+                for category, count in summary.get("prediction_counts", {}).items():
+                    self.prediction_counts[category] = self.prediction_counts.get(category, 0) + count
+            if "recommended_actions" in summary:
+                self.recommended_actions.extend(summary.get("recommended_actions", []))
     
     def is_cybersecurity_question(self, query):
+<<<<<<< HEAD
         """Check if the query is related to cybersecurity"""
         # Always return True for common questions
         if query.lower().startswith(('what', 'how', 'tell', 'give', 'are there', 'is there', 'should i', 'overview', 'summary', 'recommended', 'recommend', 'action')):
@@ -73,16 +149,127 @@ class RedHawkAssistant:
             if re.search(pattern, query_lower):
                 return True
         
+=======
+        """Determine if query is cybersecurity-related or general tech"""
+        query_lower = query.lower()
+        
+        # Check against cybersecurity keywords
+        if any(re.search(r'\b' + re.escape(keyword) + r'\b', query_lower) 
+               for keyword in self.cybersec_keywords):
+            return True
+            
+        # Check against general tech keywords
+        if any(re.search(r'\b' + re.escape(keyword) + r'\b', query_lower) 
+               for keyword in self.general_tech_keywords):
+            return True
+            
+>>>>>>> a7baf488 (The Beganinng of the end)
         return False
     
-    def generate_response(self, query):
-        """Generate a response to the user's query"""
-        # Check if query is related to cybersecurity
-        if not self.is_cybersecurity_question(query):
-            return "I'm RedHawk Assistant, designed to help with cybersecurity related queries only. Please ask me about cybersecurity topics, threats, vulnerabilities, or about your security log analysis."
+    @lru_cache(maxsize=100)
+    def _get_relevant_summary_data(self, query_type):
+        """Get relevant summary data based on query type"""
+        if not self.summary_data:
+            return None
+            
+        if query_type == "meta":
+            return {
+                "total_files_analyzed": self.meta.get("total_files_analyzed", 1),
+                "total_records_analyzed": self.meta.get("total_records_analyzed", 0),
+                "high_sensitivity_alerts": self.meta.get("high_sensitivity_total", 0),
+                "total_alerts": self.meta.get("alert_status_total", 0)
+            }
+        elif query_type == "summary" and self.file_summaries:
+            return self.file_summaries[0].get("text_summary", "")
+        elif query_type == "actions":
+            return self.recommended_actions[:5] if self.recommended_actions else []
+        elif query_type == "predictions":
+            return self.prediction_counts
+            
+        return None
+    
+    def _prepare_context(self, query):
+        """Prepare context for the query"""
+        system_message = """You are RedHawk Assistant, an AI assistant with expertise in cybersecurity and security log analysis.
+
+Your personality:
+- Helpful, friendly, and conversational
+- Knowledgeable about cybersecurity concepts and threats
+- You speak in clear, natural language that's easy to understand
+- You're concise but thorough
+- You respond in a way that sounds like a helpful colleague, not a rigid system
+
+While you have expertise in cybersecurity, you can also engage with users on other topics in a friendly manner. 
+When discussing security, provide practical, actionable advice without unnecessary jargon.
+
+Use a conversational tone that feels natural, as if two colleagues were chatting. Occasionally use light humor when appropriate."""
         
+<<<<<<< HEAD
         # Debug API key (mask it for security)
         api_key_debug = "None"
+=======
+        # Add relevant summary data context if available
+        if self.summary_data:
+            meta_data = self._get_relevant_summary_data("meta")
+            if meta_data:
+                system_message += "\n\nLog analysis statistics:\n"
+                for key, value in meta_data.items():
+                    system_message += f"- {key.replace('_', ' ').title()}: {value}\n"
+            
+            # Determine what additional context to add based on the query
+            query_lower = query.lower()
+            if "summar" in query_lower or "overview" in query_lower:
+                summary = self._get_relevant_summary_data("summary")
+                if summary:
+                    system_message += f"\n\nSummary:\n{summary}\n"
+            
+            if "action" in query_lower or "recommend" in query_lower or "what should i do" in query_lower:
+                actions = self._get_relevant_summary_data("actions")
+                if actions:
+                    system_message += "\n\nRecommended actions:\n"
+                    for action in actions:
+                        system_message += f"- {action}\n"
+            
+            if "attack" in query_lower or "threat" in query_lower or "danger" in query_lower:
+                predictions = self._get_relevant_summary_data("predictions")
+                if predictions:
+                    system_message += "\n\nThreat categories found:\n"
+                    for category, count in predictions.items():
+                        if count > 0:
+                            system_message += f"- {category}: {count}\n"
+                            
+        return system_message
+    
+    def _check_cache(self, query):
+        """Check if response is in cache"""
+        if query in self.response_cache:
+            cache_time, response = self.response_cache[query]
+            # Check if cache is still valid
+            if time.time() - cache_time < self.cache_ttl:
+                return response
+        return None
+    
+    def _update_cache(self, query, response):
+        """Update response cache"""
+        self.response_cache[query] = (time.time(), response)
+        # Clean old cache entries
+        current_time = time.time()
+        self.response_cache = {k: v for k, v in self.response_cache.items() 
+                               if current_time - v[0] < self.cache_ttl}
+    
+    def generate_response(self, query):
+        """Generate response to user query"""
+        if not self.is_cybersecurity_question(query):
+            return "I'm RedHawk Assistant, focused on cybersecurity and IT topics. " \
+                   "How can I assist you with security-related matters today?"
+        
+        # Check cache first
+        cached_response = self._check_cache(query)
+        if cached_response:
+            return cached_response
+            
+        # Try to use OpenAI if API key is available
+>>>>>>> a7baf488 (The Beganinng of the end)
         if self.api_key:
             masked_key = self.api_key[:4] + "..." + self.api_key[-4:] if len(self.api_key) > 8 else "***"
             api_key_debug = f"{masked_key} (length: {len(self.api_key)})"
@@ -91,6 +278,7 @@ class RedHawkAssistant:
         # Try to use OpenAI if API key is available
         if self.api_key and len(self.api_key) > 10 and self.api_key != 'dummy-key':
             try:
+<<<<<<< HEAD
                 # Import at function call time to avoid issues if OpenAI is not installed
                 try:
                     from openai import OpenAI
@@ -148,13 +336,57 @@ Be concise, accurate, and practical in your responses."""
                 except Exception as api_error:
                     print(f"OpenAI API error: {str(api_error)}")
                     # Fall back to rule-based responses
+=======
+                import openai
+                from openai import OpenAI
+                
+                # Prepare system message with context
+                system_message = self._prepare_context(query)
+                
+                client = OpenAI(api_key=self.api_key)
+                
+                # Use a more efficient model based on complexity and content
+                # For cybersecurity topics, use GPT-4 for better expertise
+                is_cybersec_topic = any(keyword in query.lower() for keyword in self.cybersec_keywords)
+                model = "gpt-4-turbo" if is_cybersec_topic or len(query) > 100 else "gpt-3.5-turbo"
+                
+                # Use streaming for faster initial response
+                response_stream = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_message},
+                        {"role": "user", "content": query}
+                    ],
+                    temperature=0.7,
+                    max_tokens=500,
+                    stream=True
+                )
+                
+                # Collect the streamed response
+                collected_response = ""
+                for chunk in response_stream:
+                    if chunk.choices and chunk.choices[0].delta.content:
+                        collected_response += chunk.choices[0].delta.content
+                
+                # Cache the response
+                self._update_cache(query, collected_response)
+                return collected_response
+                
+>>>>>>> a7baf488 (The Beganinng of the end)
             except Exception as e:
                 print(f"OpenAI API error: {str(e)}")
                 # Fall back to rule-based responses
         
         # Rule-based responses if API key not available or API call failed
+        response = self._generate_rule_based_response(query)
+        self._update_cache(query, response)
+        return response
+        
+    def _generate_rule_based_response(self, query):
+        """Generate rule-based response with enhanced keyword handling"""
         query_lower = query.lower()
         
+<<<<<<< HEAD
         # If we have summary data, use it to generate better responses
         if self.summary_data:
             file_summaries = self.summary_data.get("file_summaries", [])
@@ -188,9 +420,39 @@ Be concise, accurate, and practical in your responses."""
                     else:
                         # Provide more detailed generic recommendations
                         return "Recommended actions:\n- Immediately investigate attack incidents and consider isolating affected systems\n- Monitor for further suspicious activity from identified source IPs\n- Review unusual behavior patterns in the log entries\n- Continue monitoring logs for security incidents"
+=======
+        # Check for specific cybersecurity keywords
+        for keyword, response in self.keyword_responses.items():
+            if re.search(r'\b' + re.escape(keyword) + r'\b', query_lower):
+                return response
+
+        # If summary data exists, use summary-based responses
+        if self.summary_data:
+            if "summarize" in query_lower or "summary" in query_lower:
+                summary = self._get_relevant_summary_data("summary")
+                if summary:
+                    return summary
+                
+                predictions = self._get_relevant_summary_data("predictions")
+                if predictions:
+                    summary_parts = []
+                    for category, count in predictions.items():
+                        if count > 0:
+                            summary_parts.append(f"{category}: {count}")
+                    return "Log summary: " + ", ".join(summary_parts)
+            
+            if "action" in query_lower or "recommend" in query_lower or "what should i do" in query_lower or "take" in query_lower:
+                actions = self._get_relevant_summary_data("actions")
+                if actions and len(actions) > 0:
+                    response = "Recommended actions:\n"
+                    for action in actions[:3]:  # Limit to top 3 actions
+                        response += f"- {action}\n"
+                    return response
+>>>>>>> a7baf488 (The Beganinng of the end)
                 else:
                     return "Recommended actions:\n- " + "\n- ".join(default_actions)
             
+<<<<<<< HEAD
             # Handle threat/attack related questions
             if "threat" in query_lower or "attack" in query_lower or "danger" in query_lower or "vulnerability" in query_lower:
                 high_sensitivity = self.summary_data.get("meta", {}).get("high_sensitivity_total", 0)
@@ -218,6 +480,16 @@ Be concise, accurate, and practical in your responses."""
             return f"Based on the analysis of {records} log entries, I found {high_count} high severity issues and {alert_count} security alerts that require attention. The logs show a mix of normal system activity and potential security concerns. I recommend investigating the alerts further and monitoring for any suspicious patterns."
         else:
             return "I can help analyze your security logs and provide recommendations based on detected threats and vulnerabilities. Please upload a log file for analysis or ask specific cybersecurity questions."
+=======
+            if "attack" in query_lower or "threat" in query_lower or "danger" in query_lower:
+                predictions = self._get_relevant_summary_data("predictions")
+                if predictions and "attack" in predictions and predictions["attack"] > 0:
+                    return "There are potential attack indicators in the logs. I recommend immediate investigation."
+        
+        # Default cybersecurity response
+        return "Cybersecurity best practices recommend regular software updates, " \
+               "strong unique passwords, and employee security awareness training."
+>>>>>>> a7baf488 (The Beganinng of the end)
 
 def interactive_mode(assistant):
     """Run the assistant in interactive mode"""
@@ -258,4 +530,4 @@ def main():
     interactive_mode(assistant)
 
 if __name__ == "__main__":
-    main() 
+    main()
