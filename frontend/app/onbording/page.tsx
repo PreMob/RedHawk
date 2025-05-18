@@ -27,35 +27,14 @@ export default function LandingPage() {
     const handleLogUpload = async (data: any[]) => {
         // If we received data from the FileUpload component, it means CSV parsing was successful
         if (data && data.length > 0) {
-            // In a real-world scenario, we'd send the raw file to the server
-            // The FileUpload component already handles file reading and parsing locally
-            // Let's implement a proper file upload to match the backend expectations
-
-            try {
-                // This function would be called when the FileUpload component successfully parses a file
-                // Since we want to keep the existing functionality while adding real API calls,
-                // we'll simulate a successful upload to backend here
-
-                // In a real implementation, we would use raw file data instead of the parsed data
-                // For example:
-                // const formData = new FormData();
-                // formData.append('file', rawFile);
-                // const response = await fetch('/api/analyze-log', {
-                //   method: 'POST',
-                //   body: formData
-                // });
-
-                // For now, we'll assume successful upload and show success state
-                setUploadSuccess(true);
-
-                // Redirect to dashboard after a brief delay to show success state
-                setTimeout(() => {
-                    router.push("/dashboard");
-                }, 1500);
-            } catch (error) {
-                console.error("Error uploading file:", error);
-                // In a real implementation, we would handle errors appropriately
-            }
+            // Show upload success state immediately
+            setUploadSuccess(true);
+            
+            // Show success message for 1.5 seconds before redirecting
+            setTimeout(() => {
+                // Redirect to dashboard
+                router.push("/dashboard");
+            }, 1500);
         }
     }
 
@@ -73,6 +52,7 @@ export default function LandingPage() {
                             <span className="text-xs text-gray-400">Cybersecurity Platform</span>
                         </div>
                     </div>
+
                 </div>
             </header>
 
@@ -111,6 +91,14 @@ export default function LandingPage() {
                                     suspicious activities.
                                 </p>
                                 <FileUpload onFileUpload={handleLogUpload} />
+                                <div className="mt-4">
+                                    <Button 
+                                        className="w-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-2" 
+                                        onClick={() => router.push('/dashboard')}
+                                    >
+                                        Go to Dashboard <ArrowRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </CardContent>
                             <CardFooter>
                                 {uploadSuccess && (

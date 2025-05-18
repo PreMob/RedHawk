@@ -62,10 +62,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     const [unreadMessages, setUnreadMessages] = useState(2)
     const pathname = usePathname()
 
-    const handleFileUpload = async (data: any[]) => {
-        console.log("File uploaded:", data)
-        // After file upload, refetch the log analysis
-        await refetch()
+    const handleFileUpload = async (analysisData: any) => {
+        console.log("Analysis data received:", analysisData);
+        // The analysis data is already processed by the backend
+        // We can use it directly or refetch to get the latest data
+        try {
+            await refetch();
+        } catch (error) {
+            console.error('Error refetching data after upload:', error);
+        }
     }
 
     const toggleChat = () => {

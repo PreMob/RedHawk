@@ -54,7 +54,7 @@ export function FileUpload({ onFileUpload, className }: FileUploadProps) {
     return data
   }
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     setIsUploading(true)
     setUploadProgress(0)
     setUploadError(null)
@@ -68,46 +68,31 @@ export function FileUpload({ onFileUpload, className }: FileUploadProps) {
       return
     }
 
-    // Simulate upload progress
-    const progressInterval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(progressInterval)
-          return prev
-        }
-        return prev + 5
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const response = await fetch('/api/analyze-log', {
+        method: 'POST',
+        body: formData,
       })
-    }, 100)
 
-    const reader = new FileReader()
-
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result as string
-        const data = parseCSV(text)
-
-        // Simulate processing delay
-        setTimeout(() => {
-          clearInterval(progressInterval)
-          setUploadProgress(100)
-          setIsUploading(false)
-          setUploadSuccess(true)
-          onFileUpload(data)
-        }, 1000)
-      } catch (error) {
-        clearInterval(progressInterval)
-        setUploadError("Failed to parse CSV file. Please check the format.")
-        setIsUploading(false)
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to upload file')
       }
-    }
 
-    reader.onerror = () => {
-      clearInterval(progressInterval)
-      setUploadError("Failed to read file")
+      const result = await response.json()
+      setUploadProgress(100)
+      setUploadSuccess(true)
+      onFileUpload(result.analysis)
+    } catch (error) {
+      console.error('Error uploading file:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload file';
+      setUploadError(errorMessage)
+    } finally {
       setIsUploading(false)
     }
-
-    reader.readAsText(file)
   }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
