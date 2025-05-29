@@ -54,7 +54,7 @@ __pycache__/
 .Python
 *.pkl
 
-# Generated files
+# Generated files and logs
 *_adapted_*.csv
 *_predictions_*.csv
 log_analysis_summary_*.json
@@ -62,8 +62,42 @@ Backend/AI/*_adapted_*.csv
 Backend/AI/*_predictions_*.csv
 Backend/AI/log_analysis_summary_*.json
 
+# Uploaded files and generated data
+uploads/*.csv
+uploads/*.json
+uploads/temp_*
+uploads/clean_*
+uploads/sample_*
+Backend/uploads/*.csv
+Backend/uploads/*.json
+Backend/uploads/temp_*
+
+# AI generated files
+Backend/AI/*.csv
+Backend/AI/log_analysis_summary_*.json
+Backend/AI/redhawk_dataset_*_adapted_*.csv
+Backend/AI/redhawk_dataset_*_predictions_*.csv
+Backend/AI/best_model.pkl
+Backend/AI/sample_*.csv
+Backend/AI/sample_*.json
+
+# Demo and test output files
+Backend/assistant_response.html
+Backend/assistant_response.md
+Backend/markdown_output.html
+Backend/parsed_structure.json
+Backend/parser_output.md
+Backend/structure_output.md
+
+# Temporary files
+temp_*
+**/temp_*
+backup/
+
 # Specific files
 integrated_analysis_example.py
 redhawk_dataset_2.csv
-backup/
-temp_1747
+
+# Cache files
+Backend/AI/__pycache__/
+**/__pycache__/
