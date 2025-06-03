@@ -1,9 +1,9 @@
 import requests, re, json, os, argparse, sys, ssl, socket
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 try:
-    import openai
+    import google.generativeai as genai
 except ImportError:
-    openai = None
+    genai = None
 
 def parse_version(header_value):
     """Extract version numbers from a header value (e.g. 'Apache/2.4.41')."""
@@ -130,40 +130,188 @@ def scan_website(url):
             results["technologies"].append(xpb)
             ver = parse_version(xpb)
             if is_outdated_version("PHP", ver) or is_outdated_version("Apache", ver):
-                results["outdated"].append(xpb)
-
-        # Basic SQL injection test: compare response lengths
+                results["outdated"].append(xpb)        # Enhanced SQL injection test: extract existing parameters and test comprehensively
         base_length = len(resp.text or "")
+        base_content = resp.text or ""
         vuln_sql = []
-        payloads = {"true": "' OR '1'='1", "false": "' OR '1'='2"}
-        for name, payload in payloads.items():
+        sql_injection_detected = False
+        
+        # Parse URL to extract existing parameters
+        parsed_url = urlparse(url)
+        existing_params = parse_qs(parsed_url.query)
+        
+        # SQL injection payloads
+        sql_payloads = {
+            "true_condition": "' OR '1'='1",
+            "false_condition": "' OR '1'='2", 
+            "union_select": "' UNION SELECT 1,2,3--",
+            "error_based": "' AND (SELECT COUNT(*) FROM (SELECT 1 UNION SELECT 2)x GROUP BY CONCAT(version(),FLOOR(RAND(0)*2)))--",
+            "time_delay": "' OR SLEEP(2)--",
+            "numeric_true": " OR 1=1--",
+            "numeric_false": " OR 1=2--",
+            "quote_break": "'",
+            "double_quote_break": '"',
+            "comment_break": "/*"
+        }
+        
+        # Test parameters found in URL
+        test_params = list(existing_params.keys()) if existing_params else ["id", "title", "search", "q", "name"]
+        
+        for param_name in test_params:
+            param_results = []
+            baseline_response = None
+            
+            # Get baseline response for this parameter
             try:
-                r = requests.get(url, params={"id": payload}, timeout=5, headers=headers)
-                vuln_sql.append({"test": name, "length": len(r.text or "")})
-            except Exception as e:
-                results["errors"].append(f"Error testing SQL injection with payload '{name}': {str(e)}")
+                baseline_params = {}
+                for k, v in existing_params.items():
+                    baseline_params[k] = v[0] if v else ""
+                
+                baseline_req = requests.get(parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path, 
+                                          params=baseline_params, timeout=8, headers=headers)
+                baseline_response = baseline_req.text or ""
+                baseline_length = len(baseline_response)
+            except:
+                baseline_length = base_length
+                baseline_response = base_content
+            
+            for payload_name, payload in sql_payloads.items():
+                try:
+                    test_params_dict = {}
+                    # Preserve existing parameters
+                    for k, v in existing_params.items():
+                        test_params_dict[k] = v[0] if v else ""
+                    
+                    # If testing an existing parameter, modify it; otherwise add the test parameter
+                    if param_name in existing_params:
+                        original_value = existing_params[param_name][0] if existing_params[param_name] else ""
+                        test_params_dict[param_name] = original_value + payload
+                    else:
+                        test_params_dict[param_name] = payload
+                    
+                    r = requests.get(parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path, 
+                                   params=test_params_dict, timeout=8, headers=headers)
+                    
+                    response_length = len(r.text or "")
+                    response_content = r.text or ""
+                    
+                    # Check for SQL injection indicators
+                    sql_errors = [
+                        "mysql_fetch", "ORA-", "Microsoft OLE DB", "ODBC", "SQLException", 
+                        "PostgreSQL", "Warning: mysql", "valid MySQL result", "MySqlClient",
+                        "syntax error", "quoted string not properly terminated", "unclosed quotation mark",
+                        "mysql_num_rows", "mysql_", "Warning:", "Fatal error", "Parse error",
+                        "SQL syntax", "Database error", "ORA-01756", "Microsoft Access Driver",
+                        "JET Database Engine", "Access Database Engine"
+                    ]
+                    
+                    error_detected = any(error.lower() in response_content.lower() for error in sql_errors)
+                    
+                    # More sophisticated length analysis
+                    length_diff = response_length - baseline_length
+                    significant_length_change = abs(length_diff) > (baseline_length * 0.1)  # 10% change
+                    
+                    # Check for different response patterns
+                    response_differs_significantly = False
+                    if baseline_response and response_content:
+                        # Simple content comparison
+                        common_words = set(baseline_response.lower().split()) & set(response_content.lower().split())
+                        total_words = len(set(baseline_response.lower().split()) | set(response_content.lower().split()))
+                        if total_words > 0:
+                            similarity = len(common_words) / total_words
+                            response_differs_significantly = similarity < 0.7  # Less than 70% similarity
+                    
+                    test_result = {
+                        "param": param_name,
+                        "payload": payload_name, 
+                        "length": response_length,
+                        "length_diff": length_diff,
+                        "error_detected": error_detected,
+                        "significant_change": significant_length_change or response_differs_significantly
+                    }
+                    
+                    param_results.append(test_result)
+                    
+                    # Mark as suspected if we detect SQL errors, significant anomalies, or response differences
+                    if error_detected or significant_length_change or response_differs_significantly:
+                        sql_injection_detected = True
+                        
+                except Exception as e:
+                    results["errors"].append(f"Error testing SQL injection with payload '{payload_name}' on param '{param_name}': {str(e)}")
+            
+            vuln_sql.extend(param_results)
         
         results["vuln_tests"]["sql_injection"] = vuln_sql
-        # If the "true" payload returns a different length than "false", suspect SQLi
-        if len(vuln_sql) == 2:
-            if vuln_sql[0]["length"] != vuln_sql[1]["length"]:
-                results["vuln_tests"]["sql_injection_suspected"] = True
-            else:
-                results["vuln_tests"]["sql_injection_suspected"] = False
-
-        # Basic XSS test: check reflection of payload
-        xss_payloads = ["<script>alert(1)</script>", "<img src=x onerror=alert(1)>"]
+        results["vuln_tests"]["sql_injection_suspected"] = sql_injection_detected# Enhanced XSS test: check reflection of payloads in existing parameters
+        xss_payloads = [
+            "<script>alert(1)</script>",
+            "<img src=x onerror=alert(1)>",
+            "<svg onload=alert(1)>",
+            "javascript:alert(1)",
+            "'\"><script>alert(1)</script>",
+            "<iframe src=javascript:alert(1)>",
+            "<body onload=alert(1)>",
+            "<<SCRIPT>alert(1);//<</SCRIPT>"
+        ]
         xss_results = []
-        for payload in xss_payloads:
-            try:
-                r = requests.get(url, params={"id": payload}, timeout=5, headers=headers)
-                reflected = payload in (r.text or "")
-                xss_results.append({"payload": payload, "reflected": reflected})
-            except Exception as e:
-                results["errors"].append(f"Error testing XSS with payload '{payload}': {str(e)}")
+        xss_detected = False
+        
+        for param_name in test_params:
+            for payload in xss_payloads:
+                try:
+                    test_params_dict = {}
+                    # Preserve existing parameters
+                    for k, v in existing_params.items():
+                        test_params_dict[k] = v[0] if v else ""
+                    
+                    # Test the parameter with XSS payload
+                    if param_name in existing_params:
+                        test_params_dict[param_name] = payload
+                    else:
+                        test_params_dict[param_name] = payload
+                    
+                    r = requests.get(parsed_url.scheme + "://" + parsed_url.netloc + parsed_url.path, 
+                                   params=test_params_dict, timeout=8, headers=headers)
+                    
+                    response_content = r.text or ""
+                    
+                    # Check for direct reflection (exact match)
+                    direct_reflected = payload in response_content
+                      # Check for partial reflection (payload components)
+                    partial_reflected = False
+                    if "<script>" in payload and "<script>" in response_content.lower():
+                        partial_reflected = True
+                    elif "alert(" in payload and "alert(" in response_content.lower():
+                        partial_reflected = True
+                    elif "onerror=" in payload and "onerror=" in response_content.lower():
+                        partial_reflected = True
+                    
+                    if direct_reflected or partial_reflected:
+                        xss_detected = True
+                    
+                    xss_results.append({
+                        "param": param_name,
+                        "payload": payload, 
+                        "reflected": direct_reflected,
+                        "partial_reflected": partial_reflected
+                    })
+                    
+                except Exception as e:
+                    results["errors"].append(f"Error testing XSS with payload '{payload}' on param '{param_name}': {str(e)}")
         
         results["vuln_tests"]["xss"] = xss_results
-        results["vuln_tests"]["xss_suspected"] = any(r.get("reflected", False) for r in xss_results)
+        results["vuln_tests"]["xss_suspected"] = xss_detected
+
+        # Add security header analysis as potential vulnerabilities
+        critical_missing_headers = []
+        if "missing_security_headers" in results:
+            critical_headers = ["Content-Security-Policy", "Strict-Transport-Security", "X-Frame-Options"]
+            for header in results["missing_security_headers"]:
+                if header in critical_headers:
+                    critical_missing_headers.append(header)
+        
+        results["vuln_tests"]["missing_critical_headers"] = critical_missing_headers
+        results["vuln_tests"]["missing_critical_headers_suspected"] = len(critical_missing_headers) > 0
     
     except requests.exceptions.ConnectionError as e:
         results["errors"].append(f"Connection error: {str(e)}")
@@ -179,7 +327,7 @@ def scan_website(url):
     return results
 
 def generate_manual_summary(results):
-    """Generate a brief summary of the scan results without using OpenAI"""
+    """Generate a brief summary of the scan results without using Gemini"""
     summary = []
     
     # Check for errors
@@ -217,41 +365,35 @@ def generate_manual_summary(results):
 def main():
     parser = argparse.ArgumentParser(description="Lightweight web scanner")
     parser.add_argument("url", help="Target URL to scan (include http:// or https://)")
-    parser.add_argument("--skip-ai", action="store_true", help="Skip OpenAI summary generation")
+    parser.add_argument("--skip-ai", action="store_true", help="Skip Gemini summary generation")
     args = parser.parse_args()
     url = args.url.rstrip("/")
-    raw_results = scan_website(url)
-
-    # Summarize using OpenAI
+    raw_results = scan_website(url)    # Summarize using Gemini
     summary_text = ""
     skip_ai = args.skip_ai
     
-    if not skip_ai and openai and not raw_results.get("errors"):
-        api_key = os.getenv("GITHUB_TOKEN") or os.getenv("OPENAI_API_KEY")
+    if not skip_ai and genai and not raw_results.get("errors"):
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GITHUB_TOKEN")
         if api_key:
             try:
-                client = openai.OpenAI(api_key=api_key)
+                genai.configure(api_key=api_key)
+                model = genai.GenerativeModel('gemini-1.5-flash')
                 prompt = f"Summarize the security scan results: {json.dumps(raw_results, indent=2)}"
-                response = client.chat.completions.create(
-                    model="gpt-4",
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0
-                )
-                summary_text = response.choices[0].message.content.strip()
+                response = model.generate_content(prompt)
+                summary_text = response.text.strip()
             except Exception as e:
-                print(f"Error with OpenAI API: {str(e)}", file=sys.stderr)
-                summary_text = f"(Error using OpenAI API: {str(e)})"
+                print(f"Error with Gemini API: {str(e)}", file=sys.stderr)
+                summary_text = f"(Error using Gemini API: {str(e)})"
         else:
-            summary_text = "(OpenAI API key not found. Set GITHUB_TOKEN or OPENAI_API_KEY env variable.)"
+            summary_text = "(Gemini API key not found. Set GEMINI_API_KEY or GITHUB_TOKEN env variable.)"
     else:
         if skip_ai:
-            summary_text = "(OpenAI summary skipped by user request.)"
+            summary_text = "(Gemini summary skipped by user request.)"
         elif raw_results.get("errors"):
-            summary_text = "(Skipping OpenAI summary due to scan errors.)"
+            summary_text = "(Skipping Gemini summary due to scan errors.)"
         else:
-            summary_text = "(OpenAI library not installed; skipping summary.)"
-    
-    # Always add a manual summary as backup
+            summary_text = "(Gemini library not installed; skipping summary.)"
+      # Always add a manual summary as backup
     manual_summary = generate_manual_summary(raw_results)
     if not summary_text or "Error" in summary_text or "not found" in summary_text or "not installed" in summary_text:
         summary_text = manual_summary

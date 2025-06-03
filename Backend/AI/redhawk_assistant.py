@@ -13,9 +13,8 @@ class RedHawkAssistant:
     """
     RedHawk Assistant - A cybersecurity-focused chatbot with broad technical knowledge
     """
-    
     def __init__(self, api_key=None, summary_file=None):
-        """Initialize the assistant with OpenAI API key and optional summary data"""
+        """Initialize the assistant with Gemini API key and optional summary data"""
         self.api_key = api_key
         self.summary_data = None
         self.response_cache = {}
@@ -112,7 +111,6 @@ class RedHawkAssistant:
                 self.recommended_actions.extend(summary.get("recommended_actions", []))
     
     def is_cybersecurity_question(self, query):
-<<<<<<< HEAD
         """Check if the query is related to cybersecurity"""
         # Always return True for common questions
         if query.lower().startswith(('what', 'how', 'tell', 'give', 'are there', 'is there', 'should i', 'overview', 'summary', 'recommended', 'recommend', 'action')):
@@ -149,22 +147,7 @@ class RedHawkAssistant:
             if re.search(pattern, query_lower):
                 return True
         
-=======
-        """Determine if query is cybersecurity-related or general tech"""
-        query_lower = query.lower()
-        
-        # Check against cybersecurity keywords
-        if any(re.search(r'\b' + re.escape(keyword) + r'\b', query_lower) 
-               for keyword in self.cybersec_keywords):
-            return True
-            
-        # Check against general tech keywords
-        if any(re.search(r'\b' + re.escape(keyword) + r'\b', query_lower) 
-               for keyword in self.general_tech_keywords):
-            return True
-            
->>>>>>> a7baf488 (The Beganinng of the end)
-        return False
+
     
     @lru_cache(maxsize=100)
     def _get_relevant_summary_data(self, query_type):
@@ -192,22 +175,20 @@ class RedHawkAssistant:
         """Prepare context for the query"""
         system_message = """You are RedHawk Assistant, an AI assistant with expertise in cybersecurity and security log analysis.
 
-Your personality:
-- Helpful, friendly, and conversational
-- Knowledgeable about cybersecurity concepts and threats
-- You speak in clear, natural language that's easy to understand
-- You're concise but thorough
-- You respond in a way that sounds like a helpful colleague, not a rigid system
+        Your personality:
+        - Helpful, friendly, and conversational
+        - Knowledgeable about cybersecurity concepts and threats
+        - You speak in clear, natural language that's easy to understand
+        - You're concise but thorough
+        - You respond in a way that sounds like a helpful colleague, not a rigid system
 
-While you have expertise in cybersecurity, you can also engage with users on other topics in a friendly manner. 
-When discussing security, provide practical, actionable advice without unnecessary jargon.
+        While you have expertise in cybersecurity, you can also engage with users on other topics in a friendly manner. 
+        When discussing security, provide practical, actionable advice without unnecessary jargon.
 
-Use a conversational tone that feels natural, as if two colleagues were chatting. Occasionally use light humor when appropriate."""
+        Use a conversational tone that feels natural, as if two colleagues were chatting. Occasionally use light humor when appropriate."""
         
-<<<<<<< HEAD
         # Debug API key (mask it for security)
         api_key_debug = "None"
-=======
         # Add relevant summary data context if available
         if self.summary_data:
             meta_data = self._get_relevant_summary_data("meta")
@@ -256,7 +237,6 @@ Use a conversational tone that feels natural, as if two colleagues were chatting
         current_time = time.time()
         self.response_cache = {k: v for k, v in self.response_cache.items() 
                                if current_time - v[0] < self.cache_ttl}
-    
     def generate_response(self, query):
         """Generate response to user query"""
         if not self.is_cybersecurity_question(query):
@@ -268,28 +248,27 @@ Use a conversational tone that feels natural, as if two colleagues were chatting
         if cached_response:
             return cached_response
             
-        # Try to use OpenAI if API key is available
->>>>>>> a7baf488 (The Beganinng of the end)
+        # Try to use Gemini if API key is available
         if self.api_key:
             masked_key = self.api_key[:4] + "..." + self.api_key[-4:] if len(self.api_key) > 8 else "***"
             api_key_debug = f"{masked_key} (length: {len(self.api_key)})"
-        print(f"API key status: {api_key_debug}")
+            print(f"API key status: {api_key_debug}")
         
-        # Try to use OpenAI if API key is available
+        # Try to use Gemini if API key is available
         if self.api_key and len(self.api_key) > 10 and self.api_key != 'dummy-key':
             try:
-<<<<<<< HEAD
-                # Import at function call time to avoid issues if OpenAI is not installed
+                # Import at function call time to avoid issues if Gemini is not installed
                 try:
-                    from openai import OpenAI
-                    client = OpenAI(api_key=self.api_key)
-                    print("OpenAI client initialized successfully")
+                    import google.generativeai as genai
+                    genai.configure(api_key=self.api_key)
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    print("Gemini client initialized successfully")
                     
                     # Prepare system message with context
                     system_message = """You are RedHawk Assistant, a cybersecurity expert specializing in security log analysis and threat detection.
-Your purpose is to provide expert guidance on cybersecurity topics and analyze security log data.
-Answer ONLY questions related to cybersecurity. For any other topics, politely decline to answer.
-Be concise, accurate, and practical in your responses."""
+                    Your purpose is to provide expert guidance on cybersecurity topics and analyze security log data.
+                    Answer ONLY questions related to cybersecurity. For any other topics, politely decline to answer.
+                    Be concise, accurate, and practical in your responses."""
                     
                     # Add summary data context if available
                     if self.summary_data:
@@ -317,64 +296,25 @@ Be concise, accurate, and practical in your responses."""
                                 summary_dict["file_name"] = first_summary["file_name"]
                             system_message += json.dumps(summary_dict)
                     
-                    print("Calling OpenAI API...")
-                    response = client.chat.completions.create(
-                        model="gpt-3.5-turbo",  # Use gpt-3.5-turbo as a fallback if gpt-4-turbo is not available
-                        messages=[
-                            {"role": "system", "content": system_message},
-                            {"role": "user", "content": query}
-                        ],
-                        temperature=0.7,
-                        max_tokens=500
+                    print("Calling Gemini API...")
+                    prompt = f"{system_message}\n\nUser Query: {query}"
+                    response = model.generate_content(
+                        prompt,
+                        generation_config=genai.types.GenerationConfig(
+                            temperature=0.7,
+                            max_output_tokens=500,
+                        )
                     )
-                    print("OpenAI API call successful")
-                    return response.choices[0].message.content
-                    
+                    print("Gemini API call successful")
+                    return response.text
                 except ImportError:
-                    print("OpenAI SDK not installed. Falling back to rule-based responses.")
+                    print("Gemini SDK not installed. Falling back to rule-based responses.")
                     # Fall back to rule-based responses
                 except Exception as api_error:
-                    print(f"OpenAI API error: {str(api_error)}")
+                    print(f"Gemini API error: {str(api_error)}")
                     # Fall back to rule-based responses
-=======
-                import openai
-                from openai import OpenAI
-                
-                # Prepare system message with context
-                system_message = self._prepare_context(query)
-                
-                client = OpenAI(api_key=self.api_key)
-                
-                # Use a more efficient model based on complexity and content
-                # For cybersecurity topics, use GPT-4 for better expertise
-                is_cybersec_topic = any(keyword in query.lower() for keyword in self.cybersec_keywords)
-                model = "gpt-4-turbo" if is_cybersec_topic or len(query) > 100 else "gpt-3.5-turbo"
-                
-                # Use streaming for faster initial response
-                response_stream = client.chat.completions.create(
-                    model=model,
-                    messages=[
-                        {"role": "system", "content": system_message},
-                        {"role": "user", "content": query}
-                    ],
-                    temperature=0.7,
-                    max_tokens=500,
-                    stream=True
-                )
-                
-                # Collect the streamed response
-                collected_response = ""
-                for chunk in response_stream:
-                    if chunk.choices and chunk.choices[0].delta.content:
-                        collected_response += chunk.choices[0].delta.content
-                
-                # Cache the response
-                self._update_cache(query, collected_response)
-                return collected_response
-                
->>>>>>> a7baf488 (The Beganinng of the end)
             except Exception as e:
-                print(f"OpenAI API error: {str(e)}")
+                print(f"Gemini API error: {str(e)}")
                 # Fall back to rule-based responses
         
         # Rule-based responses if API key not available or API call failed
@@ -386,7 +326,6 @@ Be concise, accurate, and practical in your responses."""
         """Generate rule-based response with enhanced keyword handling"""
         query_lower = query.lower()
         
-<<<<<<< HEAD
         # If we have summary data, use it to generate better responses
         if self.summary_data:
             file_summaries = self.summary_data.get("file_summaries", [])
@@ -420,39 +359,9 @@ Be concise, accurate, and practical in your responses."""
                     else:
                         # Provide more detailed generic recommendations
                         return "Recommended actions:\n- Immediately investigate attack incidents and consider isolating affected systems\n- Monitor for further suspicious activity from identified source IPs\n- Review unusual behavior patterns in the log entries\n- Continue monitoring logs for security incidents"
-=======
-        # Check for specific cybersecurity keywords
-        for keyword, response in self.keyword_responses.items():
-            if re.search(r'\b' + re.escape(keyword) + r'\b', query_lower):
-                return response
-
-        # If summary data exists, use summary-based responses
-        if self.summary_data:
-            if "summarize" in query_lower or "summary" in query_lower:
-                summary = self._get_relevant_summary_data("summary")
-                if summary:
-                    return summary
-                
-                predictions = self._get_relevant_summary_data("predictions")
-                if predictions:
-                    summary_parts = []
-                    for category, count in predictions.items():
-                        if count > 0:
-                            summary_parts.append(f"{category}: {count}")
-                    return "Log summary: " + ", ".join(summary_parts)
-            
-            if "action" in query_lower or "recommend" in query_lower or "what should i do" in query_lower or "take" in query_lower:
-                actions = self._get_relevant_summary_data("actions")
-                if actions and len(actions) > 0:
-                    response = "Recommended actions:\n"
-                    for action in actions[:3]:  # Limit to top 3 actions
-                        response += f"- {action}\n"
-                    return response
->>>>>>> a7baf488 (The Beganinng of the end)
                 else:
                     return "Recommended actions:\n- " + "\n- ".join(default_actions)
             
-<<<<<<< HEAD
             # Handle threat/attack related questions
             if "threat" in query_lower or "attack" in query_lower or "danger" in query_lower or "vulnerability" in query_lower:
                 high_sensitivity = self.summary_data.get("meta", {}).get("high_sensitivity_total", 0)
@@ -480,16 +389,6 @@ Be concise, accurate, and practical in your responses."""
             return f"Based on the analysis of {records} log entries, I found {high_count} high severity issues and {alert_count} security alerts that require attention. The logs show a mix of normal system activity and potential security concerns. I recommend investigating the alerts further and monitoring for any suspicious patterns."
         else:
             return "I can help analyze your security logs and provide recommendations based on detected threats and vulnerabilities. Please upload a log file for analysis or ask specific cybersecurity questions."
-=======
-            if "attack" in query_lower or "threat" in query_lower or "danger" in query_lower:
-                predictions = self._get_relevant_summary_data("predictions")
-                if predictions and "attack" in predictions and predictions["attack"] > 0:
-                    return "There are potential attack indicators in the logs. I recommend immediate investigation."
-        
-        # Default cybersecurity response
-        return "Cybersecurity best practices recommend regular software updates, " \
-               "strong unique passwords, and employee security awareness training."
->>>>>>> a7baf488 (The Beganinng of the end)
 
 def interactive_mode(assistant):
     """Run the assistant in interactive mode"""
@@ -508,8 +407,8 @@ def interactive_mode(assistant):
 def main():
     parser = argparse.ArgumentParser(description='RedHawk Cybersecurity Assistant')
     parser.add_argument('--api-key', type=str, 
-                        default=os.environ.get('GITHUB_TOKEN') or os.environ.get('OPENAI_API_KEY'),
-                        help='OpenAI API key (can also be set via GITHUB_TOKEN or OPENAI_API_KEY env variable)')
+                        default=os.environ.get('GEMINI_API_KEY') or os.environ.get('GITHUB_TOKEN'),
+                        help='Gemini API key (can also be set via GEMINI_API_KEY or GITHUB_TOKEN env variable)')
     parser.add_argument('--summary', type=str, default=None,
                         help='Path to a summary JSON file for contextual knowledge')
     parser.add_argument('--query', type=str, default=None,

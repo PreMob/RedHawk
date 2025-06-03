@@ -18,8 +18,8 @@ RedHawk is a comprehensive cybersecurity platform that provides real-time monito
 ### ✨ Key Features
 
 - **🔍 Advanced Log Analysis**: AI-powered analysis of security logs with threat detection and classification
-- **🤖 Intelligent Assistant**: ChatGPT-powered cybersecurity assistant for expert guidance and recommendations
-- **🌐 URL Security Scanning**: Real-time URL analysis for malware, phishing, and vulnerability detection
+- **🤖 Intelligent Assistant**: Gemini AI-powered cybersecurity assistant for expert guidance and recommendations
+- **🌐 URL Security Scanning**: Comprehensive URL analysis with SQL injection, XSS detection, and security header validation
 - **📊 Interactive Dashboard**: Comprehensive security overview with real-time metrics and visualizations
 - **🎯 Threat Intelligence**: Automated threat categorization and risk assessment
 - **📈 Predictive Analytics**: Machine learning models for anomaly detection and threat prediction
@@ -36,7 +36,7 @@ RedHawk follows a modern full-stack architecture:
 │   (Next.js)     │◄──►│   (Node.js)      │◄──►│   (Python)      │
 │                 │    │                  │    │                 │
 │ • React 19      │    │ • Express.js     │    │ • Scikit-learn  │
-│ • TailwindCSS   │    │ • MongoDB        │    │ • OpenAI API    │
+│ • TailwindCSS   │    │ • MongoDB        │    │ • Gemini AI     │
 │ • TypeScript    │    │ • RESTful APIs   │    │ • Pandas        │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
@@ -97,11 +97,10 @@ Before running RedHawk, ensure you have:
 
 4. **Environment Configuration**
    
-   Create a `.env` file in the `Backend` directory:
-   ```env
+   Create a `.env` file in the `Backend` directory:   ```env
    PORT=3001
    MONGO_URI=mongodb://127.0.0.1:27017/redhawk
-   OPENAI_API_KEY=your_openai_api_key_here
+   GEMINI_API_KEY=your_gemini_api_key_here
    GITHUB_TOKEN=your_github_token_here
    NODE_ENV=development
    ```
@@ -145,11 +144,13 @@ Before running RedHawk, ensure you have:
 1. **Enter Target URL**
    - Use the URL testing feature on the main page
    - Enter the URL you want to scan
-   - Wait for the security analysis results
+   - Wait for the comprehensive security analysis results
 
 2. **Review Security Report**
-   - Check for malware indicators
-   - Review phishing risk assessment
+   - **SQL Injection Detection**: Advanced testing with multiple payload types and error-based detection
+   - **XSS Vulnerability Analysis**: Cross-site scripting detection with reflection analysis
+   - **Security Headers Assessment**: Analysis of missing critical security headers (CSP, HSTS, X-Frame-Options)
+   - **SSL/TLS Security**: Certificate validation and encryption assessment
    - Follow recommended security actions
 
 ### AI Assistant
@@ -176,8 +177,8 @@ Before running RedHawk, ensure you have:
 - `GET /api/chat/conversations/:sessionId` - Get conversation history
 
 ### URL Scanning
-- `POST /api/scan-url` - Scan URL for security threats
-- `GET /api/scan-results/:id` - Get scan results
+- `POST /api/scan-url` - Comprehensive URL security analysis (SQL injection, XSS, security headers)
+- `GET /api/scan-results/:id` - Get detailed scan results with vulnerability breakdown
 
 ## 🤖 AI Features
 
@@ -191,10 +192,11 @@ RedHawk includes several ML models for threat detection:
 
 ### AI Assistant Capabilities
 
-- **Cybersecurity Expertise**: Deep knowledge of security concepts and best practices
-- **Contextual Analysis**: Understands your specific log data and security context
+- **Cybersecurity Expertise**: Deep knowledge of security concepts and best practices powered by Google Gemini
+- **Contextual Analysis**: Understands your specific log data and security context with intelligent caching
 - **Actionable Recommendations**: Provides specific steps to improve security posture
-- **Real-time Chat**: Interactive conversation for security guidance
+- **Real-time Chat**: Interactive conversation for security guidance with response optimization
+- **Enhanced Performance**: Intelligent caching system and rule-based fallbacks for reliability
 
 ## 🔒 Security Features
 
@@ -223,7 +225,7 @@ RedHawk includes several ML models for threat detection:
 
 **AI & ML:**
 - Python with scikit-learn
-- OpenAI GPT API integration
+- Google Gemini AI API integration
 - Pandas for data processing
 - Custom ML pipeline for threat detection
 
@@ -260,12 +262,28 @@ python -m pytest
 
 ## 🔮 Roadmap
 
+- [x] **Enhanced URL Scanning**: Advanced SQL injection and XSS detection (Recently completed)
+- [x] **Gemini AI Integration**: Migrated from OpenAI to Google Gemini for improved AI capabilities (Recently completed)
 - [ ] **Enhanced ML Models**: More sophisticated threat detection algorithms
 - [ ] **Real-time Log Streaming**: Live log monitoring and analysis
 - [ ] **Advanced Visualizations**: Interactive security dashboards
 - [ ] **Integration APIs**: Connect with popular SIEM tools
 - [ ] **Mobile Application**: iOS and Android companion apps
 - [ ] **Compliance Reporting**: Generate reports for various security standards
+
+## 📝 Recent Updates
+
+### Version 2.1.0 (Latest)
+- **🔄 AI Migration**: Switched from OpenAI to Google Gemini AI for enhanced assistant capabilities
+- **🛡️ Enhanced URL Scanning**: 
+  - Advanced SQL injection detection with 10+ payload types
+  - Comprehensive XSS vulnerability analysis
+  - Security headers assessment (CSP, HSTS, X-Frame-Options)
+  - Improved error-based detection and response analysis
+- **⚡ Performance Improvements**: 
+  - Intelligent response caching for faster AI interactions
+  - Rule-based fallbacks for improved reliability
+  - Enhanced vulnerability detection accuracy
 
 ## 📄 License
 
@@ -282,7 +300,7 @@ For support, email support@redhawk-security.com or join our community:
 
 ## 🏆 Acknowledgments
 
-- OpenAI for the GPT API
+- Google for the Gemini AI API
 - The cybersecurity community for threat intelligence
 - All contributors and beta testers
 

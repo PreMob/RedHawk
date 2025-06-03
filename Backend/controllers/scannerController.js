@@ -139,6 +139,14 @@ exports.scanUrl = (req, res) => {
         vulnerabilities.push("Potential Cross-Site Scripting (XSS) vulnerability detected");
       }
 
+      // Check for missing critical security headers (MEDIUM severity)
+      if (raw_results.vuln_tests && raw_results.vuln_tests.missing_critical_headers_suspected) {
+        const missingHeaders = raw_results.vuln_tests.missing_critical_headers || [];
+        missingHeaders.forEach(header => {
+          vulnerabilities.push(`Missing critical security header: ${header}`);
+        });
+      }
+
       // Detailed vulnerability objects for database storage only
       const vulnerabilityDetails = [];
       
@@ -174,6 +182,20 @@ exports.scanUrl = (req, res) => {
           description: 'Potential Cross-Site Scripting (XSS) vulnerability detected',
           affectedComponent: 'Web Application',
           remediation: 'Implement output encoding and Content-Security-Policy'
+        });
+      }
+
+      // Check for missing critical security headers (MEDIUM severity)
+      if (raw_results.vuln_tests && raw_results.vuln_tests.missing_critical_headers_suspected) {
+        const missingHeaders = raw_results.vuln_tests.missing_critical_headers || [];
+        missingHeaders.forEach(header => {
+          vulnerabilityDetails.push({
+            type: 'MISSING_SECURITY_HEADER',
+            severity: 'MEDIUM',
+            description: `Missing critical security header: ${header}`,
+            affectedComponent: 'Web Server Configuration',
+            remediation: `Configure the ${header} header to improve security`
+          });
         });
       }
 

@@ -20,7 +20,7 @@ export default function LandingPage() {
         setIsLoading(true)
         // Simulate loading
         setTimeout(() => {
-            router.push("/dashboard")
+            router.push("/dashboard/url-scan")
         }, 1500)
     }
 

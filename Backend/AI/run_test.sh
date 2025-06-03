@@ -23,7 +23,7 @@ pandas = "^2.0.0"
 numpy = "^1.24.0"
 scikit-learn = "^1.3.0"
 matplotlib = "^3.7.0"
-openai = "^1.3.0"
+google-generativeai = "^0.8.0"
 
 [tool.poetry.dev-dependencies]
 

@@ -138,7 +138,7 @@ class ChatbotService {
       const pythonScriptPath = path.join(__dirname, '../AI/redhawk_assistant.py');
       const args = [
         pythonScriptPath,
-        '--api-key', process.env.GITHUB_TOKEN || process.env.OPENAI_API_KEY || 'dummy-key',
+        '--api-key', process.env.GEMINI_API_KEY || process.env.GITHUB_TOKEN || 'dummy-key',
         '--query', query
       ];
       
