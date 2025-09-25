@@ -14,6 +14,12 @@ Backend/AI/redhawk_env/
 **/redhawk_env/
 **/node_modules/
 
+# package lock files
+package-lock.json
+**/package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
 # next.js
 /.next/
 /out/
