@@ -40,13 +40,44 @@ def process_log_file(file_path, model_components=None):
         # Determine if this is a CSV file
         is_csv = file_path.lower().endswith('.csv')
         
-        # Read the file
+        # Read the file with proper encoding handling
         if is_csv:
-            df = pd.read_csv(file_path)
+            # Try different encodings
+            encodings = ['utf-8', 'utf-8-sig', 'latin1', 'cp1252', 'iso-8859-1']
+            df = None
+            
+            for encoding in encodings:
+                try:
+                    df = pd.read_csv(file_path, encoding=encoding)
+                    print(f"Successfully read file with {encoding} encoding")
+                    break
+                except UnicodeDecodeError:
+                    continue
+                except Exception as e:
+                    print(f"Error reading with {encoding}: {str(e)}")
+                    continue
+            
+            if df is None:
+                raise Exception("Could not read file with any supported encoding")
         else:
             # For non-CSV files, try to read as text and convert to DataFrame
-            with open(file_path, 'r') as f:
-                lines = f.readlines()
+            encodings = ['utf-8', 'utf-8-sig', 'latin1', 'cp1252', 'iso-8859-1']
+            lines = None
+            
+            for encoding in encodings:
+                try:
+                    with open(file_path, 'r', encoding=encoding) as f:
+                        lines = f.readlines()
+                    print(f"Successfully read file with {encoding} encoding")
+                    break
+                except UnicodeDecodeError:
+                    continue
+                except Exception as e:
+                    print(f"Error reading with {encoding}: {str(e)}")
+                    continue
+            
+            if lines is None:
+                raise Exception("Could not read file with any supported encoding")
             
             # Simple parsing for demonstration
             header = lines[0].strip().split(',')

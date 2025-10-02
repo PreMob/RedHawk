@@ -229,7 +229,19 @@ exports.analyzeLog = async (req, res) => {
     res.json({ analysis: response });
   } catch (error) {
     console.error('Error analyzing log:', error);
-    res.status(500).json({ error: error.message });
+    const errorMessage = error.message || 'Unknown error occurred during log analysis';
+    const errorDetails = {
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+      filename: req.file ? req.file.originalname : 'unknown'
+    };
+    
+    // Add more context if it's a Python process error
+    if (errorMessage.includes('Python process failed')) {
+      errorDetails.hint = 'Check if Python dependencies are installed and the Python script is accessible';
+    }
+    
+    res.status(500).json(errorDetails);
   }
 };
 

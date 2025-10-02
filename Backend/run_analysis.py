@@ -17,8 +17,31 @@ def create_sample_predictions(log_file, output_path):
     print(f"Creating sample predictions for {log_file}")
     
     try:
-        # Read log file
-        df = pd.read_csv(log_file)
+        # Read log file with proper encoding handling
+        encodings = ['utf-8', 'utf-8-sig', 'latin1', 'cp1252', 'iso-8859-1']
+        df = None
+        
+        for encoding in encodings:
+            try:
+                df = pd.read_csv(log_file, encoding=encoding)
+                print(f"Successfully read file with {encoding} encoding")
+                break
+            except UnicodeDecodeError:
+                continue
+            except Exception as e:
+                print(f"Error reading with {encoding}: {str(e)}")
+                continue
+        
+        if df is None:
+            # If we can't read the file, create a minimal sample DataFrame
+            print("Could not read log file, creating minimal sample data")
+            df = pd.DataFrame({
+                'timestamp': ['2023-01-01 10:00:00', '2023-01-01 10:01:00', '2023-01-01 10:02:00'],
+                'source_ip': ['192.168.1.100', '192.168.1.101', '192.168.1.102'],
+                'dest_ip': ['10.0.0.1', '10.0.0.1', '10.0.0.1'],
+                'port': [80, 443, 22],
+                'protocol': ['http', 'https', 'ssh']
+            })
         
         # Generate sample prediction columns
         categories = ['normal', 'probe', 'attack', 'anomaly']
@@ -33,17 +56,21 @@ def create_sample_predictions(log_file, output_path):
             df[f'prob_{cat}'] = np.random.random(len(df)) * 0.3
             
         # Adjust probabilities for the predicted category to be higher
-        for i, row in df.iterrows():
-            pred_cat = row['predicted_category']
-            df.at[i, f'prob_{pred_cat}'] = 0.7 + np.random.random() * 0.3
+        for category in categories:
+            mask = df['predicted_category'] == category
+            if mask.any():
+                prob_col = f'prob_{category}'
+                df.loc[mask, prob_col] = 0.7 + np.random.random(mask.sum()) * 0.3
         
-        # Save to output file
-        df.to_csv(output_path, index=False)
+        # Save to output file with UTF-8 encoding
+        df.to_csv(output_path, index=False, encoding='utf-8')
         print(f"Sample predictions saved to: {output_path}")
         
         return output_path
     except Exception as e:
         print(f"Error creating sample predictions: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return None
 
 def main():

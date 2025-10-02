@@ -173,7 +173,12 @@ app.get('/health', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Server Error:', err.stack);
-  res.status(500).json({ error: 'Something went wrong!', message: err.message });
+  const errorResponse = {
+    error: err.message || 'Internal server error',
+    details: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    timestamp: new Date().toISOString()
+  };
+  res.status(500).json(errorResponse);
 });
 
 // Serve the test dashboard frontend
