@@ -70,9 +70,11 @@ def process_log_file(file_path, model_components=None):
                 df[f'prob_{cat}'] = np.random.random(len(df)) * 0.3  # Base probabilities
             
             # Adjust probabilities for the predicted category to be higher
-            for i, row in df.iterrows():
-                pred_cat = row['predicted_category']
-                df.at[i, f'prob_{pred_cat}'] = 0.7 + np.random.random() * 0.3  # Higher probability for predicted class
+            for category in categories:
+                mask = df['predicted_category'] == category
+                if mask.any():
+                    prob_col = f'prob_{category}'
+                    df.loc[mask, prob_col] = 0.7 + np.random.random(mask.sum()) * 0.3
         
         # Generate output file name
         dir_name = os.path.dirname(file_path)
