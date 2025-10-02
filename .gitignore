@@ -58,7 +58,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-*.pkl
 
 # Generated files and logs
 *_adapted_*.csv
@@ -83,7 +82,6 @@ Backend/AI/*.csv
 Backend/AI/log_analysis_summary_*.json
 Backend/AI/redhawk_dataset_*_adapted_*.csv
 Backend/AI/redhawk_dataset_*_predictions_*.csv
-Backend/AI/best_model.pkl
 Backend/AI/sample_*.csv
 Backend/AI/sample_*.json
 
