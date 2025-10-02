@@ -31,6 +31,12 @@ def process_log_file(file_path, model_components=None):
     try:
         print(f"Processing log file: {file_path}")
         
+        # Load model if not provided
+        if model_components is None:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            model_path = os.path.join(script_dir, 'best_model.pkl')
+            model_components = load_model(model_path)
+        
         # Determine if this is a CSV file
         is_csv = file_path.lower().endswith('.csv')
         
