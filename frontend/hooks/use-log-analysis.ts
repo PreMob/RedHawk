@@ -3,6 +3,7 @@ import type { Threat } from "@/app/dashboard/_components/threat-table";
 
 interface LogSummary {
   totalRecords: number;
+  logAnalysisId?: string;
   predictionCounts: {
     normal: number;
     probe: number;
@@ -21,17 +22,15 @@ interface LogSummary {
 
 interface LogEntry {
   timestamp: string;
-  sourceIp: string;
-  type: string;
-  sensitivity: "LOW" | "MEDIUM" | "HIGH";
-  status: "INFO" | "ALERT" | "WARNING";
-  recommendedAction: string;
+  sourceIp?: string;
+  source_ip?: string;
+  type?: string;
+  prediction?: string;
+  sensitivity?: "LOW" | "MEDIUM" | "HIGH";
+  status?: "INFO" | "ALERT" | "WARNING";
+  recommendedAction?: string;
+  recommended_action?: string;
   id?: string;
-}
-
-interface LogAnalysisResponse {
-  summary: LogSummary;
-  logEntries: LogEntry[];
 }
 
 interface BackendAnalysisListResponse {
@@ -54,30 +53,63 @@ interface BackendAnalysisDetailResponse {
       probe: number;
       attack: number;
       anomaly: number;
+      dos?: number;
+      r2l?: number;
+      u2r?: number;
+      threat?: number;
     };
     predictionPercentages: {
       normal: number;
       probe: number;
       attack: number;
       anomaly: number;
+      dos?: number;
+      r2l?: number;
+      u2r?: number;
+      threat?: number;
     };
     textSummary: string;
     recommendedActions: string[];
     logEntries: LogEntry[];
-    visualizationData?: Record<string, any>;
+    visualizationData?: Record<string, unknown>;
   };
 }
+
+const normalizeCounts = (counts: BackendAnalysisDetailResponse["analysis"]["predictionCounts"]) => ({
+  normal: counts.normal || 0,
+  probe: counts.probe || 0,
+  attack: counts.attack || counts.dos || counts.threat || 0,
+  anomaly: counts.anomaly || counts.r2l || counts.u2r || 0,
+});
+
+const normalizePercentages = (
+  percentages: BackendAnalysisDetailResponse["analysis"]["predictionPercentages"],
+  counts: LogSummary["predictionCounts"],
+  totalRecords: number
+) => {
+  const total = totalRecords || Object.values(counts).reduce((sum, count) => sum + count, 0) || 1;
+
+  return {
+    normal: percentages.normal || Math.round((counts.normal / total) * 1000) / 10,
+    probe: percentages.probe || Math.round((counts.probe / total) * 1000) / 10,
+    attack: percentages.attack || percentages.dos || percentages.threat || Math.round((counts.attack / total) * 1000) / 10,
+    anomaly: percentages.anomaly || percentages.r2l || percentages.u2r || Math.round((counts.anomaly / total) * 1000) / 10,
+  };
+};
 
 // Map backend log entries to frontend threat model
 const mapLogEntryToThreat = (logEntry: LogEntry): Threat => {
   // Generate a unique ID if not provided
   const id = logEntry.id || `threat-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const entryType = logEntry.type || logEntry.prediction || "threat";
+  const sensitivity = logEntry.sensitivity || (entryType === "attack" ? "HIGH" : entryType === "probe" ? "MEDIUM" : "LOW");
+  const entryStatus = logEntry.status || (sensitivity === "LOW" ? "INFO" : "ALERT");
   
   // Map sensitivity to severity
   let severity: "critical" | "high" | "medium" | "low";
-  switch (logEntry.sensitivity) {
+  switch (sensitivity) {
     case "HIGH":
-      severity = logEntry.type === "attack" ? "critical" : "high";
+      severity = entryType === "attack" ? "critical" : "high";
       break;
     case "MEDIUM":
       severity = "medium";
@@ -90,7 +122,7 @@ const mapLogEntryToThreat = (logEntry: LogEntry): Threat => {
   
   // Map status
   let status: "active" | "mitigated" | "investigating";
-  switch (logEntry.status) {
+  switch (entryStatus) {
     case "ALERT":
       status = "active";
       break;
@@ -104,20 +136,23 @@ const mapLogEntryToThreat = (logEntry: LogEntry): Threat => {
   }
   
   // Format the timestamp to match the UI format
-  const timestamp = new Date(logEntry.timestamp).toISOString().replace("T", " ").substring(0, 19);
+  const parsedDate = new Date(logEntry.timestamp);
+  const timestamp = Number.isNaN(parsedDate.getTime())
+    ? new Date().toISOString().replace("T", " ").substring(0, 19)
+    : parsedDate.toISOString().replace("T", " ").substring(0, 19);
   
   // Ensure sourceIp exists or use a default
-  const sourceIp = logEntry.sourceIp || "192.168.1.1";
+  const sourceIp = logEntry.sourceIp || logEntry.source_ip || "192.168.1.1";
   
   return {
     id,
     timestamp,
     sourceIp,
     destinationIp: "10.0.0.1", // Default destination as it's not provided in the log
-    type: logEntry.type.charAt(0).toUpperCase() + logEntry.type.slice(1), // Capitalize type
+    type: entryType.charAt(0).toUpperCase() + entryType.slice(1),
     severity,
     status,
-    description: logEntry.recommendedAction || `${logEntry.type} activity detected from ${sourceIp}`,
+    description: logEntry.recommendedAction || logEntry.recommended_action || `${entryType} activity detected from ${sourceIp}`,
   };
 };
 
@@ -179,13 +214,20 @@ export function useLogAnalysis() {
       
       // Extract and update the summary
       const analysisData = detailData.analysis;
+      const normalizedCounts = normalizeCounts(analysisData.predictionCounts);
+      const normalizedPercentages = normalizePercentages(
+        analysisData.predictionPercentages,
+        normalizedCounts,
+        analysisData.totalRecords
+      );
       
       const summaryData: LogSummary = {
         totalRecords: analysisData.totalRecords,
-        predictionCounts: analysisData.predictionCounts,
-        predictionPercentages: analysisData.predictionPercentages,
+        logAnalysisId: mostRecentAnalysisId,
+        predictionCounts: normalizedCounts,
+        predictionPercentages: normalizedPercentages,
         textSummary: analysisData.textSummary,
-        recommendedActions: analysisData.recommendedActions
+        recommendedActions: analysisData.recommendedActions || []
       };
       
       setSummary(summaryData);

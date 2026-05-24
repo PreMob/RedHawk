@@ -2,52 +2,23 @@
 
 import { DashboardLayout } from "./layout-dashboard"
 import { ThreatTable } from "./_components/threat-table"
-import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AnomaliesAreaChart } from "./_components/anamolity-area-chart"
 import { VulnerabilityBarChart } from "./_components/vurnability-bar-chart"
 import { RiskDonutChart } from "./_components/risk-donut-chart"
 import { StatsCard } from "./_components/stats-card"
 import { useLogAnalysis } from "@/hooks/use-log-analysis"
-import { Globe } from "lucide-react"
+import { BrainCircuit, Globe } from "lucide-react"
 import Link from "next/link"
 
 export default function DashboardPage() {
     // Use the real data from the API instead of mock data
-    const { threats, summary, loading, error, refetch } = useLogAnalysis()
+    const { threats, loading, error } = useLogAnalysis()
     
     // Helper function to count threats by severity
     const countThreatsBySeverity = (severity: string) => {
         if (!threats?.length) return 0;
         return threats.filter(threat => threat.severity === severity).length;
-    }
-    
-    // Helper function to count mitigated threats
-    const countMitigatedThreats = () => {
-        if (!threats?.length) return 0;
-        return threats.filter(threat => 
-            threat.status === 'mitigated'
-        ).length;
-    }
-    
-    // Helper function to count threats by type for the pie chart
-    const getThreatTypeData = () => {
-        if (!threats?.length) return [];
-        const typeCounts: Record<string, number> = {};
-        
-        threats.forEach(threat => {
-            if (threat.type) {
-                if (!typeCounts[threat.type]) {
-                    typeCounts[threat.type] = 0;
-                }
-                typeCounts[threat.type]++;
-            }
-        });
-        
-        return Object.entries(typeCounts).map(([type, count]) => ({
-            type,
-            count
-        }));
     }
     
     // Helper function to count anomalies
@@ -84,11 +55,11 @@ export default function DashboardPage() {
                     />
                     <StatsCard 
                         title="Total Vulnerabilities Found" 
-                        value={loading ? "Loading..." : threats?.length.toString() || "0"} 
+                        value={loading ? "Loading..." : (threats?.length || 0).toString()}
                     />
                     <StatsCard 
                         title="High-Risk Hosts" 
-                        value={loading ? "Loading..." : (countThreatsBySeverity('critical') + countThreatsBySeverity('high')).toString()} 
+                        value={loading ? "Loading..." : (countThreatsBySeverity('critical') + countThreatsBySeverity('high')).toString()}
                     />
                     <StatsCard 
                         title="Anomalies Detected" 
@@ -150,8 +121,20 @@ export default function DashboardPage() {
                             </CardContent>
                         </Card>
                     </Link>
-                    
-                    {/* Add more tool cards here */}
+
+                    <Link href="/dashboard/ai-briefing">
+                        <Card className="border-red-900/30 bg-black hover:bg-cyan-950/20 transition-colors cursor-pointer">
+                            <CardHeader>
+                                <CardTitle className="text-lg font-semibold text-white flex items-center">
+                                    <BrainCircuit className="h-5 w-5 mr-2 text-cyan-400" />
+                                    AI Threat Briefing
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-gray-400">Review a ranked attack narrative, likely path, response plan, and detection ideas.</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
                 </div>
             </div>
         </DashboardLayout>

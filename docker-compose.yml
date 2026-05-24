@@ -23,6 +23,7 @@ services:
       NODE_ENV: production
       PORT: 3001
       MONGO_URI: mongodb://mongodb:27017/redhawk
+      PYTHON_BIN: python3
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     ports:

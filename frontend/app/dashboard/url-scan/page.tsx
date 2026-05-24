@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { AlertCircle, CheckCircle, Globe, Loader2, Shield, AlertTriangle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useUrlScan } from "@/hooks/use-url-scan"
-import { cn } from "@/lib/utils"
 
 export default function UrlScanPage() {
   const { url, setUrl, scanUrl, isLoading, error, scanResult } = useUrlScan()
@@ -163,4 +162,4 @@ export default function UrlScanPage() {
       </div>
     </DashboardLayout>
   )
-} 
+}

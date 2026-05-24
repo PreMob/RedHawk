@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 
 interface FileUploadProps {
-  onFileUpload: (data: any[]) => void
+  onFileUpload: (data: unknown) => void | Promise<void>
   className?: string
 }
 
@@ -31,27 +31,6 @@ export function FileUpload({ onFileUpload, className }: FileUploadProps) {
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(false)
-  }
-
-  const parseCSV = (text: string) => {
-    const lines = text.split("\n")
-    const headers = lines[0].split(",").map((header) => header.trim())
-
-    const data = lines
-      .slice(1)
-      .filter((line) => line.trim() !== "")
-      .map((line) => {
-        const values = line.split(",").map((value) => value.trim())
-        return headers.reduce(
-          (obj, header, index) => {
-            obj[header] = values[index]
-            return obj
-          },
-          {} as Record<string, string>,
-        )
-      })
-
-    return data
   }
 
   const processFile = async (file: File) => {
@@ -85,7 +64,7 @@ export function FileUpload({ onFileUpload, className }: FileUploadProps) {
       const result = await response.json()
       setUploadProgress(100)
       setUploadSuccess(true)
-      onFileUpload(result.analysis)
+      await onFileUpload(result.analysis)
     } catch (error) {
       console.error('Error uploading file:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload file';

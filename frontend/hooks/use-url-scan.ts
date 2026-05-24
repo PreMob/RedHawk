@@ -10,10 +10,13 @@ interface ScanResult {
     technologies: string[];
     outdated: string[];
     vuln_tests: {
-      sqlInjection: any[];
-      sqlInjectionSuspected: boolean;
-      xss: any[];
-      xssSuspected: boolean;
+      sqlInjection?: Array<Record<string, unknown>>;
+      sql_injection?: Array<Record<string, unknown>>;
+      sqlInjectionSuspected?: boolean;
+      sql_injection_suspected?: boolean;
+      xss: Array<Record<string, unknown>>;
+      xssSuspected?: boolean;
+      xss_suspected?: boolean;
     };
     errors: string[];
   };
@@ -80,4 +83,4 @@ export function useUrlScan() {
     scanResult,
     reset,
   };
-} 
+}

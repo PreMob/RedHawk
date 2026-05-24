@@ -16,6 +16,7 @@ require('./models/ScanResult');
 const logRoutes = require('./routes/logRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const scanRoutes = require('./routes/scanRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 // Create Express app
 const app = express();
@@ -130,6 +131,7 @@ connectWithRetry();
 app.use('/api', logRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/scan', scanRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Test URL scanning endpoint
 app.get('/test-url-scan', (req, res) => {
@@ -139,7 +141,9 @@ app.get('/test-url-scan', (req, res) => {
   console.log(`Testing URL scan for: ${targetUrl}`);
   console.log(`Script path: ${pythonScriptPath}`);
   
-  exec(`python "${pythonScriptPath}" "${targetUrl}" --skip-ai`, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
+  const pythonBin = process.env.PYTHON_BIN || 'python3';
+
+  exec(`"${pythonBin}" "${pythonScriptPath}" "${targetUrl}" --skip-ai`, { maxBuffer: 1024 * 1024 }, (error, stdout, stderr) => {
     if (error) {
       console.error(`Error executing URL scan: ${error.message}`);
       return res.status(500).json({ error: 'Failed to scan URL', details: error.message, stderr });

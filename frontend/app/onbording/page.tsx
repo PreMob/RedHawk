@@ -24,9 +24,9 @@ export default function LandingPage() {
         }, 1500)
     }
 
-    const handleLogUpload = async (data: any[]) => {
+    const handleLogUpload = async (data: unknown) => {
         // If we received data from the FileUpload component, it means CSV parsing was successful
-        if (data && data.length > 0) {
+        if (data) {
             // Show upload success state immediately
             setUploadSuccess(true);
             

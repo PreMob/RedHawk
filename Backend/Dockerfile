@@ -3,7 +3,8 @@ FROM node:20-bookworm-slim
 ENV NODE_ENV=production \
     PNPM_HOME=/pnpm \
     VIRTUAL_ENV=/opt/venv \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHON_BIN=python3
 ENV PATH="$PNPM_HOME:$VIRTUAL_ENV/bin:$PATH"
 
 WORKDIR /app/Backend

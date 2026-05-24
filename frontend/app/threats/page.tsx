@@ -6,10 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useLogAnalysis } from "@/hooks/use-log-analysis"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AlertCircle } from "lucide-react"
-import { SummaryPanel } from "../dashboard/_components/summary-panel"
 
 export default function ThreatsPage() {
-    const { threats, summary, loading, error, refetch } = useLogAnalysis();
+    const { threats, summary, loading, error } = useLogAnalysis();
 
     return (
         <DashboardLayout>
@@ -95,11 +94,11 @@ export default function ThreatsPage() {
                             threats={threats} 
                             loading={loading} 
                             error={error}
-                            onViewDetails={(threat) => console.log('Viewing threat details:', threat.id)} 
+                            onViewDetails={(threat) => console.log('Viewing threat details:', threat.id)}
                         />
                     </>
                 )}
             </div>
         </DashboardLayout>
     )
-} 
+}

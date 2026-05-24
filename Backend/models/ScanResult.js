@@ -9,7 +9,7 @@ const ScanResultSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  rawResults: {
+  rawScanData: {
     headers: {
       type: Map,
       of: String
@@ -59,4 +59,4 @@ const ScanResultSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('ScanResult', ScanResultSchema); 
+module.exports = mongoose.model('ScanResult', ScanResultSchema);

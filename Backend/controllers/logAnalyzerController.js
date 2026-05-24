@@ -11,17 +11,15 @@ const mockLogAnalysisData = {
   totalRecords: 1250,
   predictionCounts: {
     'normal': 980,
-    'dos': 150,
+    'attack': 150,
     'probe': 85,
-    'r2l': 25,
-    'u2r': 10
+    'anomaly': 35
   },
   predictionPercentages: {
     'normal': 78.4,
-    'dos': 12.0,
+    'attack': 12.0,
     'probe': 6.8,
-    'r2l': 2.0,
-    'u2r': 0.8
+    'anomaly': 2.8
   },
   textSummary: 'This log file contains primarily normal traffic (78.4%) with some suspicious activities. There are signs of denial of service attempts (12%) and network probing (6.8%). Recommend investigating the source IPs of DoS attacks.',
   recommendedActions: [
@@ -31,10 +29,10 @@ const mockLogAnalysisData = {
     'Review server configurations for security hardening'
   ],
   logEntries: [
-    { timestamp: '2023-05-18T10:15:22Z', sourceIp: '192.168.1.105', destIp: '10.0.0.1', prediction: 'normal', confidence: 0.97 },
-    { timestamp: '2023-05-18T10:16:35Z', sourceIp: '45.123.45.67', destIp: '10.0.0.1', prediction: 'probe', confidence: 0.89 },
-    { timestamp: '2023-05-18T10:18:12Z', sourceIp: '45.123.45.67', destIp: '10.0.0.1', prediction: 'probe', confidence: 0.92 },
-    { timestamp: '2023-05-18T10:20:44Z', sourceIp: '72.14.56.78', destIp: '10.0.0.1', prediction: 'dos', confidence: 0.95 }
+    { timestamp: '2023-05-18T10:15:22Z', sourceIp: '192.168.1.105', type: 'normal', sensitivity: 'LOW', status: 'INFO', recommendedAction: 'No action required' },
+    { timestamp: '2023-05-18T10:16:35Z', sourceIp: '45.123.45.67', type: 'probe', sensitivity: 'MEDIUM', status: 'ALERT', recommendedAction: 'Monitor scanning activity' },
+    { timestamp: '2023-05-18T10:18:12Z', sourceIp: '45.123.45.67', type: 'probe', sensitivity: 'MEDIUM', status: 'ALERT', recommendedAction: 'Review firewall logs for repeated probing' },
+    { timestamp: '2023-05-18T10:20:44Z', sourceIp: '72.14.56.78', type: 'attack', sensitivity: 'HIGH', status: 'ALERT', recommendedAction: 'Block source and inspect affected service' }
   ],
   visualizationData: {
     timeSeries: [
@@ -120,7 +118,7 @@ exports.analyzeLog = async (req, res) => {
     
     // Run Python analysis script
     console.log('Running Python script:', path.join(__dirname, '../run_analysis.py'));
-    const pythonProcess = spawn('python', [
+    const pythonProcess = spawn(process.env.PYTHON_BIN || 'python3', [
       path.join(__dirname, '../run_analysis.py'),
       '--log-file', targetFilePath,
       '--summary-file', path.join(uploadDir, 'clean_summary.json')
@@ -346,4 +344,4 @@ exports.getLogAnalysisById = async (req, res) => {
     console.error('Error fetching log analysis:', error);
     res.status(500).json({ error: error.message });
   }
-}; 
+};

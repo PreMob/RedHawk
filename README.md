@@ -21,6 +21,7 @@ RedHawk is a comprehensive cybersecurity platform that provides real-time monito
 - **🤖 Intelligent Assistant**: Gemini AI-powered cybersecurity assistant for expert guidance and recommendations
 - **🌐 URL Security Scanning**: Comprehensive URL analysis with SQL injection, XSS detection, and security header validation
 - **📊 Interactive Dashboard**: Comprehensive security overview with real-time metrics and visualizations
+- **🧠 AI Threat Briefing**: Data-driven attack narrative, risk scoring, response plan, and detection ideas
 - **🎯 Threat Intelligence**: Automated threat categorization and risk assessment
 - **📈 Predictive Analytics**: Machine learning models for anomaly detection and threat prediction
 - **🔔 Real-time Alerts**: Instant notifications for high-priority security incidents
@@ -210,6 +211,9 @@ The Docker setup starts the full project: Next.js frontend, Express/Python backe
 ### URL Scanning
 - `POST /api/scan-url` - Comprehensive URL security analysis (SQL injection, XSS, security headers)
 - `GET /api/scan-results/:id` - Get detailed scan results with vulnerability breakdown
+
+### AI Briefing
+- `GET /api/ai/briefing` - Generate an attack narrative, likely kill path, response plan, and detection ideas from latest security data
 
 ## 🤖 AI Features
 

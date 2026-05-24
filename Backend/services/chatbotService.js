@@ -152,7 +152,7 @@ class ChatbotService {
       
       return new Promise((resolve, reject) => {
         // Spawn Python process
-        const pythonProcess = spawn('python', args);
+        const pythonProcess = spawn(process.env.PYTHON_BIN || 'python3', args);
         
         let responseData = '';
         let errorData = '';

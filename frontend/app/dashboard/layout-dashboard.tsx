@@ -37,6 +37,7 @@ import {
     Eye,
     AlertCircle,
     BotMessageSquare,
+    BrainCircuit,
     Globe,
 } from "lucide-react"
 import { FileUpload } from "@/components/file-upload"
@@ -62,8 +63,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     const [unreadMessages, setUnreadMessages] = useState(2)
     const pathname = usePathname()
 
-    const handleFileUpload = async (analysisData: any) => {
-        console.log("Analysis data received:", analysisData);
+    const handleFileUpload = async () => {
         // The analysis data is already processed by the backend
         // We can use it directly or refetch to get the latest data
         try {
@@ -169,6 +169,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                                             <SidebarMenuButton isActive={pathname === '/dashboard/url-scan'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
                                                 <Globe className="text-red-500" />
                                                 <span>URL Scan</span>
+                                            </SidebarMenuButton>
+                                        </Link>
+                                    </SidebarMenuItem>
+                                    <SidebarMenuItem>
+                                        <Link href="/dashboard/ai-briefing" className="w-full">
+                                            <SidebarMenuButton isActive={pathname === '/dashboard/ai-briefing'} className="hover:bg-red-950/50 hover:text-white data-[active=true]:bg-red-950 data-[active=true]:text-white">
+                                                <BrainCircuit className="text-cyan-400" />
+                                                <span>AI Briefing</span>
                                             </SidebarMenuButton>
                                         </Link>
                                     </SidebarMenuItem>

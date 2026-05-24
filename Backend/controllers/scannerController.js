@@ -100,7 +100,9 @@ exports.scanUrl = (req, res) => {
   console.log(`Using Python script: ${pythonScriptPath}`);
 
   // Execute the Python script
-  exec(`python "${pythonScriptPath}" "${target_url}" --skip-ai`, { maxBuffer: 1024 * 1024 }, async (error, stdout, stderr) => {
+  const pythonBin = process.env.PYTHON_BIN || 'python3';
+
+  exec(`"${pythonBin}" "${pythonScriptPath}" "${target_url}" --skip-ai`, { maxBuffer: 1024 * 1024 }, async (error, stdout, stderr) => {
     const duration = Date.now() - startTime;
     
     if (error) {
