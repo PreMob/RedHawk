@@ -49,7 +49,9 @@ import { Input } from "@/components/ui/input"
 import { mockNodes, mockLinks } from "@/lib/mock-data"
 import { useLogAnalysis } from "@/hooks/use-log-analysis"
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { RequireAuth } from "@/components/require-auth"
+import { useAuth } from "@/components/auth-provider"
 
 
 interface DashboardLayoutProps {
@@ -57,11 +59,32 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+    return (
+        <RequireAuth>
+            <DashboardShell>{children}</DashboardShell>
+        </RequireAuth>
+    )
+}
+
+function DashboardShell({ children }: DashboardLayoutProps) {
     const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null)
     const { threats, summary, loading, error, refetch } = useLogAnalysis()
     const [isChatOpen, setIsChatOpen] = useState(false)
     const [unreadMessages, setUnreadMessages] = useState(2)
     const pathname = usePathname()
+    const router = useRouter()
+    const { user, logout } = useAuth()
+    const initials = (user?.name || user?.email || "RH")
+        .split(/[^\w]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join("") || "RH"
+
+    const handleLogout = () => {
+        logout()
+        router.replace("/login")
+    }
 
     const handleFileUpload = async () => {
         // The analysis data is already processed by the backend
@@ -195,19 +218,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                         <div className="flex items-center justify-between p-2">
                             <div className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8 border border-red-900/50">
-                                    <AvatarImage src="/logo.png" alt="WindHawk" />
-                                    <AvatarFallback className="bg-red-950 text-red-500">JD</AvatarFallback>
+                                    <AvatarImage src="/placeholder-user.png" alt={user?.name || "RedHawk user"} />
+                                    <AvatarFallback className="bg-red-950 text-red-500">{initials}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-medium text-white">UserName</span>
-                                    <span className="text-xs text-gray-400"></span>
+                                    <span className="max-w-[120px] truncate text-sm font-medium text-white">{user?.name || "RedHawk User"}</span>
+                                    <span className="max-w-[120px] truncate text-xs text-gray-400">{user?.email}</span>
                                 </div>
                             </div>
                             <div className="flex gap-1">
                                 <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:bg-red-950 hover:text-white">
                                     <Settings className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:bg-red-950 hover:text-white">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:bg-red-950 hover:text-white" onClick={handleLogout}>
                                     <LogOut className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -222,6 +245,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             <div className="flex items-center">
                                 <SidebarTrigger className="mr-2 text-gray-400 hover:bg-red-950 hover:text-white" />
                                 <h1 className="text-xl font-bold text-white">Security Dashboard</h1>
+                                <Badge variant="outline" className="ml-3 hidden border-emerald-900/50 bg-emerald-950/20 text-emerald-300 sm:inline-flex">
+                                    Verified session
+                                </Badge>
                             </div>
                             <div className="flex items-center gap-4">
                                 <div className="relative">

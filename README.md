@@ -102,6 +102,7 @@ Before running RedHawk, ensure you have:
    ```env
    PORT=3001
    MONGO_URI=mongodb://127.0.0.1:27017/redhawk
+   AUTH_TOKEN_SECRET=replace_with_a_long_random_secret
    GEMINI_API_KEY=your_gemini_api_key_here
    GITHUB_TOKEN=your_github_token_here
    NODE_ENV=development
@@ -200,9 +201,20 @@ The Docker setup starts the full project: Next.js frontend, Express/Python backe
 ## 🔧 API Endpoints
 
 ### Log Analysis
+- Register or sign in before opening protected dashboard workflows
 - `POST /api/analyze-log` - Upload and analyze security logs
 - `GET /api/log-analysis/:id` - Retrieve analysis results
 - `GET /api/log-analyses` - List all analyses
+
+### Authentication
+- `POST /api/auth/register` - Create an analyst account and receive an access token
+- `POST /api/auth/login` - Sign in and receive an access token
+- `GET /api/auth/me` - Validate the current access token
+
+Protected dashboard APIs require:
+```http
+Authorization: Bearer <token>
+```
 
 ### Chat Assistant
 - `POST /api/chat` - Send message to AI assistant

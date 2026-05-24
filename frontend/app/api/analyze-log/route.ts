@@ -18,8 +18,13 @@ export async function POST(request: Request) {
     const backendFormData = new FormData();
     backendFormData.append('file', file);
 
+    const authorization = request.headers.get('authorization');
+    const headers = new Headers();
+    if (authorization) headers.set('Authorization', authorization);
+
     const backendResponse = await fetch(`${BACKEND_API_URL}/api/analyze-log`, {
       method: 'POST',
+      headers,
       body: backendFormData,
     });
 

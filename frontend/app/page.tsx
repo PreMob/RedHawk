@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AnimatedHeroSection } from "@/components/animated-hero-section"
 import { Server, ChevronRight, BarChart3, Globe, FileText, Network, AlertTriangle } from "lucide-react"
@@ -17,8 +18,8 @@ export default function Home() {
             <span className="text-xl font-bold tracking-tighter text-red-500">RedHawk</span>
           </div>
           <nav className="hidden md:flex items-center gap-6">
-            <Button className="p-4 bg-red-600 text-white hover:bg-red-800 border-white rounded ">
-              Sign In
+            <Button asChild className="p-4 bg-red-600 text-white hover:bg-red-800 border-white rounded ">
+              <Link href="/login">Sign In</Link>
             </Button>
           </nav>
           {/*<Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-950 hover:text-white">*/}
@@ -233,9 +234,11 @@ export default function Home() {
                   Get started with RedHawk's advanced cybersecurity solutions today and protect your business from
                   evolving threats.
                 </p>
-                <Button className="bg-red-600 hover:bg-red-700 text-white">
-                  Schedule a Security Assessment
-                  <ChevronRight className="ml-2 h-4 w-4" />
+                <Button asChild className="bg-red-600 hover:bg-red-700 text-white">
+                  <Link href="/login?next=/onbording">
+                    Schedule a Security Assessment
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               </div>
               <div className="bg-black/40 border border-red-900/30 rounded-xl p-6">

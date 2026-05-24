@@ -7,11 +7,14 @@ const mongoose = require('mongoose');
 require('./models/LogAnalysis');
 require('./models/ChatConversation');
 require('./models/ScanResult');
+require('./models/User');
 
 const logRoutes = require('./routes/logRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const scanRoutes = require('./routes/scanRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const authRoutes = require('./routes/authRoutes');
+const { requireAuth } = require('./middleware/authMiddleware');
 
 const app = express();
 
@@ -27,10 +30,11 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-app.use('/api', logRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/scan', scanRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api', requireAuth, logRoutes);
+app.use('/api/chat', requireAuth, chatRoutes);
+app.use('/api/scan', requireAuth, scanRoutes);
+app.use('/api/ai', requireAuth, aiRoutes);
 
 app.get('/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';

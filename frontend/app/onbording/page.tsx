@@ -9,6 +9,7 @@ import { Input } from "../../components/ui/input";
 import { AnimatedEye } from "../../components/animated-eye";
 import Image from "next/image";
 import { FileUpload } from "../../components/file-upload";
+import { RequireAuth } from "@/components/require-auth"
 
 export default function LandingPage() {
     const router = useRouter()
@@ -39,6 +40,7 @@ export default function LandingPage() {
     }
 
     return (
+        <RequireAuth>
         <div className="min-h-screen bg-black flex flex-col">
             {/* Header */}
             <header className="border-b border-red-900/30 bg-black px-6 py-4">
@@ -162,5 +164,6 @@ export default function LandingPage() {
             </main>
 
         </div>
+        </RequireAuth>
     )
 }

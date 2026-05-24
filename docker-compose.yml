@@ -24,6 +24,7 @@ services:
       PORT: 3001
       MONGO_URI: mongodb://mongodb:27017/redhawk
       PYTHON_BIN: python3
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:-redhawk-dev-secret-change-me}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     ports:

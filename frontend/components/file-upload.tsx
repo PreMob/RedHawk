@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
+import { authFetch } from "@/lib/auth-client"
 
 interface FileUploadProps {
   onFileUpload: (data: unknown) => void | Promise<void>
@@ -51,7 +52,7 @@ export function FileUpload({ onFileUpload, className }: FileUploadProps) {
     formData.append('file', file)
 
     try {
-      const response = await fetch('/api/analyze-log', {
+      const response = await authFetch('/api/analyze-log', {
         method: 'POST',
         body: formData,
       })

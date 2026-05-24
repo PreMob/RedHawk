@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { authFetch } from "@/lib/auth-client";
 
 interface ScanResult {
   scan_id?: string;
@@ -43,7 +44,7 @@ export function useUrlScan() {
     setError(null);
     
     try {
-      const response = await fetch('/api/scan/scan-url', {
+      const response = await authFetch('/api/scan/scan-url', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

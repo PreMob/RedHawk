@@ -3,15 +3,15 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Paperclip, Shield, AlertTriangle, X, MoreVertical, Maximize2, Minimize2, UserIcon } from "lucide-react"
+import { Send, Paperclip, Shield, AlertTriangle, X, Maximize2, Minimize2, UserIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { useLogAnalysis } from "@/hooks/use-log-analysis"
+import { authFetch } from "@/lib/auth-client"
 
 interface Message {
   id: string
@@ -80,7 +80,7 @@ export function ChatPanel({ isOpen, onClose, className }: ChatPanelProps) {
       // Get the latest analysis ID if available
       const logAnalysisId = summary ? summary.logAnalysisId : null;
       
-      const response = await fetch('/api/chat/message', {
+      const response = await authFetch('/api/chat/message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

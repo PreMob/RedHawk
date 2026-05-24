@@ -16,11 +16,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Forward the request to the backend
+    const authorization = request.headers.get('authorization');
+    const headers = new Headers({
+      'Content-Type': 'application/json',
+    });
+    if (authorization) headers.set('Authorization', authorization);
+
     const backendResponse = await fetch(`${BACKEND_API_URL}/api/scan/scan-url`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(body),
     });
 

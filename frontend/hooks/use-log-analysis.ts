@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Threat } from "@/app/dashboard/_components/threat-table";
+import { authFetch } from "@/lib/auth-client";
 
 interface LogSummary {
   totalRecords: number;
@@ -169,7 +170,7 @@ export function useLogAnalysis() {
     try {
       console.log('Fetching log analyses list...');
       // First, fetch list of analyses
-      const listResponse = await fetch('/api/analyses', {
+      const listResponse = await authFetch('/api/analyses', {
         headers: {
           'Accept': 'application/json',
           'Cache-Control': 'no-cache'
@@ -196,7 +197,7 @@ export function useLogAnalysis() {
       console.log('Fetching details for analysis ID:', mostRecentAnalysisId);
       
       // Fetch detailed analysis data
-      const detailResponse = await fetch(`/api/analyses/${mostRecentAnalysisId}`, {
+      const detailResponse = await authFetch(`/api/analyses/${mostRecentAnalysisId}`, {
         headers: {
           'Accept': 'application/json',
           'Cache-Control': 'no-cache'

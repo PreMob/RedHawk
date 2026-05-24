@@ -11,12 +11,15 @@ const { exec } = require('child_process');
 require('./models/LogAnalysis');
 require('./models/ChatConversation');
 require('./models/ScanResult');
+require('./models/User');
 
 // Route imports
 const logRoutes = require('./routes/logRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const scanRoutes = require('./routes/scanRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const authRoutes = require('./routes/authRoutes');
+const { requireAuth } = require('./middleware/authMiddleware');
 
 // Create Express app
 const app = express();
@@ -128,10 +131,11 @@ const connectWithRetry = () => {
 connectWithRetry();
 
 // Routes
-app.use('/api', logRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/scan', scanRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api', requireAuth, logRoutes);
+app.use('/api/chat', requireAuth, chatRoutes);
+app.use('/api/scan', requireAuth, scanRoutes);
+app.use('/api/ai', requireAuth, aiRoutes);
 
 // Test URL scanning endpoint
 app.get('/test-url-scan', (req, res) => {

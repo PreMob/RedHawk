@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
+import { authFetch } from "@/lib/auth-client"
 
 export interface BriefingSignal {
   label: string
@@ -87,7 +88,7 @@ export function useAiBriefing() {
     setError(null)
 
     try {
-      const response = await fetch("/api/ai/briefing", {
+      const response = await authFetch("/api/ai/briefing", {
         headers: {
           Accept: "application/json",
           "Cache-Control": "no-cache",
