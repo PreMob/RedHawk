@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
+const backendApiUrl = (process.env.BACKEND_API_URL || 'http://localhost:3001').replace(/\/$/, '')
+
 const nextConfig = {
+  output: 'standalone',
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -13,7 +16,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:3001/api/:path*',
+        destination: `${backendApiUrl}/api/:path*`,
       },
     ];
   },

@@ -1,0 +1,9 @@
+.git
+**/node_modules
+**/.next
+**/.pnpm-store
+**/coverage
+uploads
+.env
+.env.*
+.DS_Store

@@ -125,7 +125,10 @@ class ChatbotService {
           };
           
           // Write summary to temporary file for assistant
-          const tempDir = path.join(__dirname, '../uploads');
+          const tempDir = path.join(__dirname, '../../uploads');
+          if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
+          }
           tempSummaryPath = path.join(tempDir, `temp_summary_${Date.now()}.json`);
           fs.writeFileSync(tempSummaryPath, JSON.stringify(summaryData, null, 2));
           
@@ -281,4 +284,4 @@ class ChatbotService {
   }
 }
 
-module.exports = new ChatbotService(); 
+module.exports = new ChatbotService();

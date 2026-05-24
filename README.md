@@ -86,7 +86,7 @@ Before running RedHawk, ensure you have:
    npm install
    
    # Install Python dependencies
-   pip install -r ../requirements.txt
+   pip install -r AI/requirements.txt
    ```
 
 3. **Frontend Setup**
@@ -97,7 +97,8 @@ Before running RedHawk, ensure you have:
 
 4. **Environment Configuration**
    
-   Create a `.env` file in the `Backend` directory:   ```env
+   Create a `.env` file in the `Backend` directory:
+   ```env
    PORT=3001
    MONGO_URI=mongodb://127.0.0.1:27017/redhawk
    GEMINI_API_KEY=your_gemini_api_key_here
@@ -124,6 +125,36 @@ Before running RedHawk, ensure you have:
 3. **Access the Application**
    
    Open your browser and navigate to `http://localhost:3000`
+
+### Running with Docker
+
+The Docker setup starts the full project: Next.js frontend, Express/Python backend, and MongoDB.
+
+1. **Configure optional AI keys**
+   ```bash
+   cp .env.example .env
+   # Edit .env if you want Gemini/GitHub-backed assistant responses
+   ```
+
+2. **Build and start everything**
+   ```bash
+   docker compose up --build
+   ```
+
+3. **Open the app**
+   - Frontend: `http://localhost:3000`
+   - Backend health check: `http://localhost:3001/health`
+   - MongoDB: `mongodb://localhost:27017/redhawk`
+
+4. **Stop the stack**
+   ```bash
+   docker compose down
+   ```
+
+   To remove stored MongoDB/upload data too:
+   ```bash
+   docker compose down -v
+   ```
 
 ## 📖 Usage Guide
 

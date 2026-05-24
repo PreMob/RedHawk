@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // The backend URL where we send the request
-const BACKEND_API_URL = process.env.BACKEND_API_URL || 'http://localhost:3001';
+const BACKEND_API_URL = (process.env.BACKEND_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,4 +38,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

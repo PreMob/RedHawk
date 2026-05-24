@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+
+const BACKEND_API_URL = (process.env.BACKEND_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 export async function POST(request: Request) {
   try {
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const backendFormData = new FormData();
     backendFormData.append('file', file);
 
-    const backendResponse = await fetch('http://localhost:3001/api/analyze-log', {
+    const backendResponse = await fetch(`${BACKEND_API_URL}/api/analyze-log`, {
       method: 'POST',
       body: backendFormData,
     });

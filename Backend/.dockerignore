@@ -1,0 +1,12 @@
+node_modules
+.pnpm-store
+npm-debug.log*
+pnpm-debug.log*
+.env
+.env.*
+coverage
+tests
+uploads
+AI/__pycache__
+AI/*.pyc
+.DS_Store
